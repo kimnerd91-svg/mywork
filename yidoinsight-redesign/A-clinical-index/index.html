@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>닥터인사이트 Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap">
+<style>
+/* Layout concept: 진료 차트 + 색인 — 왼쪽 여백에 분류 코드(mono)를 세운 문서형 그리드, 차팅 레드/블루를 표식으로만 사용 */
+:root {
+  --paper: #F4F6F5;
+  --surface: #FFFFFF;
+  --ink: #0F1D2B;
+  --muted: #56616C;
+  --faint: #8A949D;
+  --line: #D3D9DB;
+  --line-strong: #0F1D2B;
+  --mark: #C7362B;          /* 차팅 레드: 치료가 필요한 부위 표시 */
+  --mark-soft: #F8E3E0;
+  --link: #2752C2;          /* 차팅 블루: 기존 수복 표시, 링크 */
+  --link-soft: #E3EAFB;
+  --invert-bg: #0F1D2B;
+  --invert-fg: #EEF2F4;
+  --invert-muted: #A6B2BC;
+  --font-sans: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.1875rem;
+  --step-2: 1.5rem;
+  --step-3: clamp(1.75rem, 1.2rem + 1.8vw, 2.5rem);
+  --step-4: clamp(2.25rem, 1.3rem + 3.6vw, 4rem);
+  --wrap: 1240px;
+  --radius: 4px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0C141B; --surface: #121C25; --ink: #E6ECEF; --muted: #9AA7B2; --faint: #6F7C88;
+    --line: #24323E; --line-strong: #E6ECEF; --mark: #F07467; --mark-soft: #3A1D1C;
+    --link: #8DABFF; --link-soft: #1B2846; --invert-bg: #E6ECEF; --invert-fg: #0F1D2B; --invert-muted: #4A5762;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0C141B; --surface: #121C25; --ink: #E6ECEF; --muted: #9AA7B2; --faint: #6F7C88;
+  --line: #24323E; --line-strong: #E6ECEF; --mark: #F07467; --mark-soft: #3A1D1C;
+  --link: #8DABFF; --link-soft: #1B2846; --invert-bg: #E6ECEF; --invert-fg: #0F1D2B; --invert-muted: #4A5762;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-sans); font-size: var(--step-0); line-height: 1.65;
+  word-break: keep-all; overflow-wrap: anywhere;
+  -webkit-font-smoothing: antialiased;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--surface); }
+a { color: inherit; }
+h1, h2, h3 { text-wrap: balance; margin: 0; font-weight: 600; letter-spacing: -0.02em; line-height: 1.25; }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); letter-spacing: 0; }
+.wrap { max-width: var(--wrap); margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 720px) { .wrap { padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); } }
+.eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.eyebrow b { color: var(--mark); font-weight: 500; }
+.arrow-link { display: inline-flex; gap: 6px; align-items: center; text-decoration: none; color: var(--link); font-weight: 500; border-bottom: 1px solid currentColor; padding-bottom: 1px; }
+.arrow-link:hover { color: var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- top bar & header ---------- */
+.util { background: var(--invert-bg); color: var(--invert-fg); font-size: var(--step--1); }
+.util .wrap { display: flex; justify-content: space-between; gap: 16px; padding-block: 7px; align-items: center; }
+.util .langs { display: flex; gap: 14px; font-family: var(--font-mono); font-size: 0.75rem; }
+.util .langs a { text-decoration: none; color: var(--invert-muted); }
+.util .langs a[aria-current] { color: var(--invert-fg); }
+.util .note { color: var(--invert-muted); }
+@media (max-width: 640px) { .util .note { display: none; } }
+
+.site-header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: var(--surface); border-bottom: 1px solid var(--line); }
+.site-header .wrap { display: flex; align-items: center; gap: 28px; min-height: 64px; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; flex-shrink: 0; }
+.brand-mark { width: 34px; height: 34px; border: 1.5px solid var(--ink); display: grid; grid-template-columns: 1fr 1fr; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; line-height: 1; }
+.brand-mark span { display: grid; place-items: center; }
+.brand-mark span:nth-child(1), .brand-mark span:nth-child(2) { border-bottom: 1px solid var(--ink); }
+.brand-mark span:nth-child(odd) { border-right: 1px solid var(--ink); }
+.brand-mark span:nth-child(4) { background: var(--mark); color: #fff; }
+.brand-text { display: grid; line-height: 1.2; }
+.brand-text strong { font-size: 0.9375rem; font-weight: 600; }
+.brand-text small { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); letter-spacing: 0.04em; }
+.nav { display: flex; gap: 22px; font-size: 0.9375rem; margin-left: auto; }
+.nav a { text-decoration: none; color: var(--muted); padding-block: 20px; border-bottom: 2px solid transparent; }
+.nav a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+.header-cta { display: flex; gap: 8px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: var(--radius); font-size: 0.9375rem; font-weight: 500; text-decoration: none; border: 1px solid var(--ink); background: transparent; cursor: pointer; white-space: nowrap; }
+.btn-solid { background: var(--ink); color: var(--paper); }
+.btn-solid:hover { background: var(--link); border-color: var(--link); color: #fff; }
+.btn:not(.btn-solid):hover { background: var(--ink); color: var(--paper); }
+@media (max-width: 1080px) { .nav { display: none; } .header-cta { margin-left: auto; } }
+@media (max-width: 560px) { .header-cta .btn:not(.btn-solid) { display: none; } }
+
+/* ---------- hero ---------- */
+.hero { background: var(--surface); border-bottom: 1px solid var(--line); }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 56px; padding-block: 56px 64px; }
+@media (max-width: 960px) { .hero .wrap { grid-template-columns: minmax(0, 1fr); gap: 40px; padding-block: 40px 48px; } }
+.hero h1 { font-size: var(--step-4); font-weight: 600; letter-spacing: -0.035em; line-height: 1.12; margin-block: 18px 16px; }
+.hero h1 em { font-style: normal; color: var(--mark); }
+.hero .lede { color: var(--muted); font-size: var(--step-1); max-width: 34em; }
+
+.search { margin-top: 32px; position: relative; }
+.search-box { display: flex; align-items: center; border: 2px solid var(--ink); border-radius: var(--radius); background: var(--surface); }
+.search-box .code { font-family: var(--font-mono); font-size: 0.75rem; color: var(--faint); padding-left: 16px; white-space: nowrap; }
+.search-box input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: var(--step-1); padding: 16px 14px; color: var(--ink); }
+.search-box input::placeholder { color: var(--faint); }
+.search-box:focus-within { border-color: var(--link); box-shadow: 0 0 0 4px var(--link-soft); }
+.search-box button { border: 0; background: var(--ink); color: var(--paper); padding: 0 22px; align-self: stretch; cursor: pointer; font-weight: 500; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+.chips .label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--faint); margin-right: 4px; }
+.chip { border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 4px 12px; font-size: 0.875rem; cursor: pointer; }
+.chip:hover { border-color: var(--ink); }
+
+.results { margin-top: 18px; border-top: 1px solid var(--line-strong); }
+.results-head { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); padding-block: 10px; border-bottom: 1px solid var(--line); }
+.result { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 14px; align-items: baseline; padding-block: 12px; border-bottom: 1px solid var(--line); text-decoration: none; }
+.result:hover { background: var(--paper); }
+.result .r-code { font-family: var(--font-mono); font-size: 0.75rem; color: var(--mark); }
+.result .r-title { font-weight: 600; }
+.result .r-desc { display: block; color: var(--muted); font-size: 0.875rem; margin-top: 2px; }
+.result .r-type { font-size: 0.75rem; color: var(--faint); white-space: nowrap; }
+.result mark { background: var(--mark-soft); color: inherit; padding: 0 1px; }
+@media (max-width: 560px) { .result { grid-template-columns: 52px minmax(0, 1fr); gap: 4px 12px; } .result .r-type { grid-column: 2; } }
+.results-empty { padding-block: 16px; color: var(--muted); font-size: 0.9375rem; }
+
+/* clinic card */
+.clinic { border: 1px solid var(--line-strong); border-radius: var(--radius); align-self: start; background: var(--surface); }
+.clinic-head { padding: 18px 20px; border-bottom: 1px solid var(--line); display: grid; gap: 6px; }
+.status { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: var(--step-1); }
+.status .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--faint); }
+.status[data-state="open"] .dot { background: #2E9B5F; box-shadow: 0 0 0 4px color-mix(in srgb, #2E9B5F 22%, transparent); }
+.status[data-state="lunch"] .dot, .status[data-state="soon"] .dot { background: #D99A1E; }
+.status[data-state="closed"] .dot { background: var(--mark); }
+.clinic-head small { color: var(--muted); font-size: 0.875rem; }
+.hours { width: 100%; border-collapse: collapse; font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
+.hours th, .hours td { padding: 9px 20px; border-bottom: 1px solid var(--line); text-align: left; font-weight: 400; }
+.hours td { font-family: var(--font-mono); font-size: 0.875rem; text-align: right; }
+.hours tr.today { background: var(--link-soft); }
+.hours tr.today th { font-weight: 600; }
+.hours tr.today th::after { content: "오늘"; font-family: var(--font-mono); font-size: 0.6875rem; margin-left: 8px; color: var(--link); border: 1px solid var(--link); padding: 0 5px; border-radius: 2px; vertical-align: 2px; }
+.hours tr.off td { color: var(--mark); }
+.clinic-note { padding: 10px 20px; font-size: 0.8125rem; color: var(--muted); border-bottom: 1px solid var(--line); }
+.clinic-addr { padding: 16px 20px; display: grid; gap: 4px; font-size: 0.9375rem; }
+.clinic-addr .sub { color: var(--muted); font-size: 0.875rem; }
+.phone-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-top: 1px solid var(--line); }
+.phone-row .num { font-family: var(--font-mono); font-size: 1.375rem; font-weight: 500; user-select: all; }
+.copy { border: 1px solid var(--line); background: var(--paper); border-radius: var(--radius); padding: 4px 10px; font-size: 0.8125rem; cursor: pointer; }
+.clinic-actions { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line-strong); }
+.clinic-actions a { text-align: center; padding: 14px; text-decoration: none; font-weight: 500; }
+.clinic-actions a + a { border-left: 1px solid var(--line-strong); background: var(--ink); color: var(--paper); }
+.clinic-actions a:hover { background: var(--link); color: #fff; }
+
+/* ---------- section scaffolding ---------- */
+.section { padding-block: 88px; border-bottom: 1px solid var(--line); }
+@media (max-width: 720px) { .section { padding-block: 56px; } }
+.section-head { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; gap: 24px; align-items: end; margin-bottom: 40px; }
+.section-head .idx { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); align-self: start; padding-top: 10px; border-top: 2px solid var(--ink); }
+.section-head h2 { font-size: var(--step-3); }
+.section-head p { color: var(--muted); margin-top: 10px; max-width: 38em; }
+@media (max-width: 860px) { .section-head { grid-template-columns: minmax(0, 1fr); gap: 14px; } .section-head .idx { justify-self: start; } }
+
+/* ---------- symptom chart (FDI) ---------- */
+.chart-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+@media (max-width: 960px) { .chart-grid { grid-template-columns: minmax(0, 1fr); } }
+.odonto { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+.odonto-legend { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); margin-bottom: 10px; letter-spacing: 0.04em; }
+.arch { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)) 10px repeat(8, minmax(0, 1fr)); gap: 4px; align-items: end; }
+.arch.lower { align-items: start; }
+.arch .mid { align-self: stretch; border-left: 1px dashed var(--faint); justify-self: center; }
+.tooth { border: 1.5px solid var(--ink); background: var(--surface); cursor: pointer; padding: 0; font-family: var(--font-mono); font-size: 0.6875rem; line-height: 1; display: grid; place-items: center; transition: background .15s, color .15s, transform .15s; }
+.arch.upper .tooth { border-radius: 6px 6px 3px 3px; }
+.arch.lower .tooth { border-radius: 3px 3px 6px 6px; }
+.tooth[data-z="front"] { height: 46px; }
+.tooth[data-z="premolar"] { height: 40px; }
+.tooth[data-z="molar"], .tooth[data-z="wisdom"] { height: 36px; }
+.tooth[data-z="wisdom"] { border-style: dashed; }
+.tooth:hover { background: var(--link-soft); }
+.tooth.on { background: var(--mark); border-color: var(--mark); color: #fff; }
+.arch.upper .tooth.on { transform: translateY(-3px); }
+.arch.lower .tooth.on { transform: translateY(3px); }
+.occlusal { height: 1px; background: var(--line); margin-block: 12px; position: relative; }
+.occlusal span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--surface); padding: 0 8px; font-family: var(--font-mono); font-size: 0.625rem; color: var(--faint); letter-spacing: 0.08em; }
+.jaw-label { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--faint); margin-block: 6px; }
+.zone-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
+.zone-btn { border: 1px solid var(--line); background: var(--paper); border-radius: var(--radius); padding: 7px 12px; font-size: 0.875rem; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.zone-btn .mono { font-size: 0.6875rem; color: var(--faint); }
+.zone-btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.zone-btn[aria-pressed="true"] .mono { color: var(--invert-muted); }
+@media (max-width: 520px) { .odonto { padding: 16px 12px; } .tooth { font-size: 0.5625rem; } .arch { gap: 2px; grid-template-columns: repeat(8, minmax(0, 1fr)) 6px repeat(8, minmax(0, 1fr)); } }
+
+.zone-panel { display: grid; gap: 20px; }
+.zone-title { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.zone-title h3 { font-size: var(--step-2); }
+.zone-title .mono { font-size: 0.75rem; color: var(--mark); }
+.zone-panel > p { color: var(--muted); }
+.sym-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-strong); }
+.sym-list li { padding-block: 14px; border-bottom: 1px solid var(--line); display: grid; gap: 8px; }
+.sym-list .q { font-weight: 500; }
+.sym-list .refs { display: flex; flex-wrap: wrap; gap: 6px; }
+.ref { display: inline-flex; align-items: baseline; gap: 6px; text-decoration: none; font-size: 0.875rem; padding: 3px 9px; border-radius: 2px; background: var(--link-soft); color: var(--link); }
+.ref .mono { font-size: 0.6875rem; }
+.ref:hover { background: var(--link); color: #fff; }
+.disclaimer { font-size: 0.8125rem; color: var(--faint); }
+
+/* ---------- index table ---------- */
+.tabs { display: flex; gap: 0; overflow-x: auto; border-bottom: 1px solid var(--line-strong); margin-bottom: 0; scrollbar-width: thin; }
+.tab { border: 0; background: transparent; padding: 10px 14px; cursor: pointer; white-space: nowrap; font-size: 0.9375rem; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -1px; display: inline-flex; gap: 6px; align-items: baseline; }
+.tab .mono { font-size: 0.6875rem; color: var(--faint); }
+.tab[aria-selected="true"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--mark); }
+.index-list { list-style: none; margin: 0; padding: 0; }
+.term { display: grid; grid-template-columns: 80px minmax(140px, 220px) minmax(0, 1fr) 150px 32px; gap: 20px; align-items: baseline; padding-block: 18px; border-bottom: 1px solid var(--line); text-decoration: none; scroll-margin-top: 100px; transition: background .2s; }
+.term:hover { background: var(--surface); }
+.term:hover .go { color: var(--link); transform: translate(2px, -2px); }
+.term .t-code { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--mark); }
+.term .t-name { font-weight: 600; font-size: var(--step-1); letter-spacing: -0.01em; }
+.term .t-desc { color: var(--muted); }
+.term .t-cat { font-size: 0.8125rem; color: var(--faint); }
+.term .go { color: var(--faint); transition: transform .15s, color .15s; justify-self: end; }
+.term.flash { background: var(--mark-soft); }
+@media (max-width: 860px) {
+  .term { grid-template-columns: 64px minmax(0, 1fr) 24px; gap: 4px 14px; }
+  .term .t-desc { grid-column: 2 / 3; }
+  .term .t-cat { grid-column: 2 / 3; grid-row: 3; }
+  .term .go { grid-column: 3; grid-row: 1; }
+}
+.index-foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 20px; font-size: 0.875rem; color: var(--muted); }
+
+/* ---------- reading ---------- */
+.reading { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; }
+@media (max-width: 860px) { .reading { grid-template-columns: minmax(0, 1fr); gap: 40px; } }
+.reading h3 { font-size: var(--step-1); display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 12px; border-bottom: 2px solid var(--ink); }
+.reading h3 .mono { font-size: 0.75rem; font-weight: 400; color: var(--muted); }
+.article { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; padding-block: 18px; border-bottom: 1px solid var(--line); text-decoration: none; }
+.article:hover .a-title { color: var(--link); }
+.article .a-tag { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--mark); letter-spacing: 0.04em; text-transform: uppercase; }
+.article .a-title { font-weight: 600; font-size: 1.0625rem; grid-column: 1; }
+.article .a-desc { color: var(--muted); font-size: 0.9375rem; grid-column: 1; }
+.article .a-meta { font-size: 0.8125rem; color: var(--faint); grid-column: 1; }
+.article .go { grid-column: 2; grid-row: 1 / span 3; align-self: center; color: var(--faint); }
+
+/* ---------- doctors ---------- */
+.doctors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+@media (max-width: 1000px) { .doctors { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .doctors { gap: 16px 12px; } }
+.doc { display: grid; gap: 12px; align-content: start; }
+.doc-photo { aspect-ratio: 4 / 5; max-width: 100%; border-radius: var(--radius); overflow: hidden; background: var(--line); position: relative; }
+.doc-photo img { width: 100%; height: 100%; object-fit: cover; display: block; filter: grayscale(0.15) contrast(1.02); }
+.doc-photo.placeholder { display: grid; place-items: center; background: var(--surface); border: 1px dashed var(--faint); }
+.doc-photo.placeholder .initial { font-size: 3rem; font-weight: 300; color: var(--faint); }
+.doc-photo.placeholder small { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-size: 0.75rem; color: var(--faint); }
+.doc-photo .badge { position: absolute; left: 10px; top: 10px; font-family: var(--font-mono); font-size: 0.625rem; background: var(--surface); color: var(--ink); padding: 3px 6px; border-radius: 2px; letter-spacing: 0.04em; }
+.doc h3 { font-size: var(--step-2); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.doc h3 small { font-size: 0.875rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.doc .spec { font-size: 0.8125rem; color: var(--link); font-weight: 500; }
+.doc .fields { display: flex; flex-wrap: wrap; gap: 6px; }
+.doc .fields span { font-size: 0.8125rem; border: 1px solid var(--line); padding: 2px 8px; border-radius: 2px; background: var(--surface); }
+.doc a { font-size: 0.875rem; }
+.doc-note { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.875rem; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+/* ---------- FAQ + policy ---------- */
+.faq-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 56px; }
+@media (max-width: 960px) { .faq-grid { grid-template-columns: minmax(0, 1fr); } }
+.faq details { border-bottom: 1px solid var(--line); }
+.faq details:first-child { border-top: 1px solid var(--line-strong); }
+.faq summary { list-style: none; cursor: pointer; padding-block: 18px; display: grid; grid-template-columns: 32px minmax(0, 1fr) 20px; gap: 12px; font-weight: 500; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary .mono { font-size: 0.75rem; color: var(--mark); padding-top: 4px; }
+.faq summary .pm { font-family: var(--font-mono); color: var(--faint); transition: transform .2s; text-align: center; }
+.faq details[open] summary .pm { transform: rotate(45deg); color: var(--ink); }
+.faq .answer { padding: 0 32px 20px 44px; color: var(--muted); display: grid; gap: 10px; }
+.faq .answer a { font-size: 0.9375rem; justify-self: start; }
+.policy { background: var(--invert-bg); color: var(--invert-fg); border-radius: var(--radius); padding: 28px; display: grid; gap: 20px; align-content: start; }
+.policy .eyebrow { color: var(--invert-muted); }
+.policy h3 { font-size: var(--step-2); }
+.policy ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.policy li { padding-block: 14px; border-top: 1px solid color-mix(in srgb, var(--invert-fg) 18%, transparent); display: grid; gap: 4px; }
+.policy li strong { font-weight: 600; }
+.policy li span { color: var(--invert-muted); font-size: 0.9375rem; }
+.policy .stamp { font-family: var(--font-mono); font-size: 0.75rem; color: var(--invert-muted); }
+.policy a { color: var(--invert-fg); font-size: 0.9375rem; }
+
+/* ---------- footer ---------- */
+.footer { background: var(--surface); }
+.footer .wrap { padding-block: 64px 120px; display: grid; gap: 48px; }
+@media (min-width: 900px) { .footer .wrap { padding-bottom: 48px; } }
+.foot-top { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 32px; }
+@media (max-width: 900px) { .foot-top { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+@media (max-width: 520px) { .foot-top { grid-template-columns: minmax(0, 1fr); } }
+.foot-brand p { color: var(--muted); margin-top: 14px; font-size: 0.9375rem; max-width: 26em; }
+.foot-col h4 { margin: 0 0 12px; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+.foot-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 0.9375rem; }
+.foot-col a { text-decoration: none; }
+.foot-col a:hover { color: var(--link); text-decoration: underline; }
+.foot-bottom { border-top: 1px solid var(--line); padding-top: 20px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 0.8125rem; color: var(--faint); }
+
+/* ---------- mobile action bar ---------- */
+.dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--surface); border-top: 1px solid var(--line-strong); display: none; grid-template-columns: repeat(3, minmax(0, 1fr)); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.dock a { text-align: center; padding: 12px 6px; text-decoration: none; font-size: 0.875rem; font-weight: 500; display: grid; gap: 2px; }
+.dock a .mono { font-size: 0.625rem; color: var(--faint); }
+.dock a:last-child { background: var(--ink); color: var(--paper); }
+.dock a:last-child .mono { color: var(--invert-muted); }
+.dock a + a { border-left: 1px solid var(--line); }
+@media (max-width: 900px) { .dock { display: grid; } }
+
+.toast { position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 8px 14px; border-radius: var(--radius); font-size: 0.875rem; z-index: 70; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+<div class="util">
+  <div class="wrap">
+    <span class="note">서울이도치과 닥터인사이트 · 진료 전에 읽는 치과 용어와 상담 준비 글</span>
+    <nav class="langs" aria-label="언어 선택">
+      <a href="https://yidoinsight.com/" aria-current="page">KR</a>
+      <a href="https://yidoinsight.com/en/">EN</a>
+      <a href="https://yidoinsight.com/ja/">JA</a>
+      <a href="https://yidoinsight.com/zh-cn/">ZH</a>
+    </nav>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="서울이도치과 닥터인사이트 홈">
+      <span class="brand-mark" aria-hidden="true"><span>Y</span><span>I</span><span>D</span><span>O</span></span>
+      <span class="brand-text"><strong>서울이도치과 닥터인사이트</strong><small>DOCTORINSIGHT INDEX</small></span>
+    </a>
+    <nav class="nav" aria-label="주요 메뉴">
+      <a href="#chart">증상으로 찾기</a>
+      <a href="#index">치아백과</a>
+      <a href="#reading">칼럼·상담 준비</a>
+      <a href="#doctors">의료진</a>
+      <a href="#visit">방문 안내</a>
+    </nav>
+    <div class="header-cta">
+      <a class="btn" href="#visit">진료시간</a>
+      <a class="btn btn-solid" href="https://booking.naver.com/booking/13/bizes/1712749" target="_blank" rel="noopener">네이버 예약 ↗</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div>
+        <div class="eyebrow"><b>●</b> 마포·공덕역 서울이도치과 <span aria-hidden="true">/</span> 치과 용어 20항목 · 상담 준비 글 8편</div>
+        <h1 id="hero-title">치과에서 들은 그 말,<br>진료 전에 <em>먼저</em> 찾아보세요.</h1>
+        <p class="lede">치료 이름을 알면 용어로, 어디가 불편한지만 알면 증상으로 찾을 수 있습니다. 읽고 나서 상담 때 물어볼 질문을 정리해 보세요.</p>
+
+        <form class="search" id="search-form" role="search">
+          <label class="sr" for="q">치료명이나 증상 검색</label>
+          <div class="search-box">
+            <span class="code" aria-hidden="true">검색</span>
+            <input id="q" type="search" autocomplete="off" placeholder="예: 시린이, 크라운, 잇몸에서 피" value="임플란트">
+            <button type="submit">찾기</button>
+          </div>
+          <div class="chips" aria-label="많이 찾는 검색어">
+            <span class="label">자주 찾는 말</span>
+            <button type="button" class="chip">임플란트</button>
+            <button type="button" class="chip">시린이</button>
+            <button type="button" class="chip">크라운</button>
+            <button type="button" class="chip">잇몸</button>
+            <button type="button" class="chip">사랑니</button>
+            <button type="button" class="chip">교정</button>
+          </div>
+          <div class="results" id="results" aria-live="polite"></div>
+        </form>
+      </div>
+
+      <aside class="clinic" aria-label="오늘의 진료 안내" id="visit">
+        <div class="clinic-head">
+          <span class="status" id="status" data-state="open"><span class="dot" aria-hidden="true"></span><span id="status-text">진료 시간 확인 중</span></span>
+          <small id="status-sub">한국 시간 기준 · 공휴일은 휴진</small>
+        </div>
+        <table class="hours" aria-label="진료시간">
+          <tbody>
+            <tr data-days="1,4"><th scope="row">월 · 목 <span class="mono" style="font-size:.6875rem;color:var(--link)">야간</span></th><td>09:30 – 20:30</td></tr>
+            <tr data-days="2,3,5"><th scope="row">화 · 수 · 금</th><td>09:30 – 18:30</td></tr>
+            <tr data-days="6"><th scope="row">토요일</th><td>09:30 – 14:30</td></tr>
+            <tr data-days="0" class="off"><th scope="row">일요일 · 공휴일</th><td>휴진</td></tr>
+          </tbody>
+        </table>
+        <p class="clinic-note">평일 점심 12:30 – 14:00 · 토요일은 점심시간 없이 진료</p>
+        <div class="clinic-addr">
+          <span>서울 마포구 만리재로 24, 2층</span>
+          <span class="sub">신공덕동 · 공덕역 5·6번 출구 도보 약 3분<br>신공덕 아이파크 지하주차장 2시간 무료</span>
+        </div>
+        <div class="phone-row">
+          <span class="num" id="phone">02-706-2080</span>
+          <button class="copy" type="button" id="copy-phone">번호 복사</button>
+        </div>
+        <div class="clinic-actions">
+          <a href="https://yidoinsight.com/visit/" target="_blank" rel="noopener">오시는 길 ↗</a>
+          <a href="https://booking.naver.com/booking/13/bizes/1712749" target="_blank" rel="noopener">네이버 예약 ↗</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- SYMPTOM CHART -->
+  <section class="section" id="chart" aria-labelledby="chart-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="idx">증상으로 찾기</span>
+        <div>
+          <h2 id="chart-title">어디가 불편하세요?</h2>
+          <p>치아 번호는 치과 차트에서 쓰는 국제 표기(FDI)입니다. 불편한 부위를 누르면 그 부위에서 자주 이야기하는 불편과 관련 용어를 보여드립니다.</p>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="odonto">
+          <div class="odonto-legend"><span>환자의 오른쪽 R</span><span>L 환자의 왼쪽</span></div>
+          <div class="jaw-label">상악 · 윗니</div>
+          <div class="arch upper" id="arch-upper"></div>
+          <div class="occlusal"><span>교합면</span></div>
+          <div class="arch lower" id="arch-lower"></div>
+          <div class="jaw-label">하악 · 아랫니</div>
+          <div class="zone-btns" id="zone-btns" aria-label="부위 선택"></div>
+        </div>
+
+        <div class="zone-panel" id="zone-panel" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INDEX -->
+  <section class="section" id="index" aria-labelledby="index-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="idx">치아백과</span>
+        <div>
+          <h2 id="index-title">치아백과 색인</h2>
+          <p>상담 중에 자주 듣는 말의 뜻을 한 줄로 정리했습니다. 항목을 누르면 상담 전에 확인할 질문까지 이어서 읽을 수 있습니다.</p>
+        </div>
+      </div>
+      <div class="tabs" role="tablist" id="tabs" aria-label="분류"></div>
+      <ul class="index-list" id="index-list"></ul>
+      <div class="index-foot">
+        <span>분류 코드는 진료 영역을 뜻합니다. 예) IM 임플란트·발치, PR 보철·수복</span>
+        <a class="arrow-link" href="https://yidoinsight.com/sources/" target="_blank" rel="noopener">참고자료와 확인 시점 ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- READING -->
+  <section class="section" id="reading" aria-labelledby="reading-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="idx">칼럼 · 상담 준비</span>
+        <div>
+          <h2 id="reading-title">치료를 정하기 전에 읽어보세요</h2>
+          <p>원장이 진료를 바라보는 관점과, 상담에 가져갈 질문을 정리한 글입니다.</p>
+        </div>
+        <a class="arrow-link" href="https://yidoinsight.com/journal/" target="_blank" rel="noopener">전체 글 보기 ↗</a>
+      </div>
+      <div class="reading">
+        <div>
+          <h3>원장 칼럼 <span class="mono">편집 칼럼 3</span></h3>
+          <div id="columns"></div>
+        </div>
+        <div>
+          <h3>상담 준비 노트 <span class="mono">가이드 5</span></h3>
+          <div id="guides"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCTORS -->
+  <section class="section" id="doctors" aria-labelledby="doctors-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="idx">의료진</span>
+        <div>
+          <h2 id="doctors-title">서울이도치과 의료진 4인</h2>
+          <p>전문의 자격과 관심 진료분야를 나누어 표기합니다. 개별 진료일은 병원에 확인해 주세요.</p>
+        </div>
+        <a class="arrow-link" href="https://yidoinsight.com/doctors/" target="_blank" rel="noopener">의료진 소개 ↗</a>
+      </div>
+      <div class="doctors">
+        <article class="doc">
+          <div class="doc-photo"><img src="../assets/doctor-ko-sungmin.jpg" alt="고성민 대표원장" width="360" height="450"><span class="badge">SURGERY</span></div>
+          <h3>고성민 <small>대표원장</small></h3>
+          <div class="fields"><span>임플란트 수술</span><span>진정치료</span><span>턱관절·구강외과</span></div>
+          <a class="arrow-link" href="https://yidoinsight.com/doctors/ko-sungmin/" target="_blank" rel="noopener">원장 소개 ↗</a>
+        </article>
+        <article class="doc">
+          <div class="doc-photo"><img src="../assets/doctor-park-jihyun.jpg" alt="박지현 대표원장" width="360" height="450"><span class="badge">PROSTHODONTICS</span></div>
+          <h3>박지현 <small>대표원장</small></h3>
+          <span class="spec">치과보철과 전문의</span>
+          <div class="fields"><span>심미보철</span><span>임플란트 보철</span><span>전악수복</span></div>
+          <a class="arrow-link" href="https://yidoinsight.com/doctors/park-jihyun/" target="_blank" rel="noopener">원장 소개 ↗</a>
+        </article>
+        <article class="doc">
+          <div class="doc-photo"><img src="../assets/doctor-won-soyun.jpg" alt="원소윤 수석원장" width="360" height="450"><span class="badge">AESTHETICS</span></div>
+          <h3>원소윤 <small>수석원장</small></h3>
+          <div class="fields"><span>심미보철</span><span>라미네이트 비니어</span><span>레진 수복</span></div>
+          <a class="arrow-link" href="https://yidoinsight.com/doctors/won-soyun/" target="_blank" rel="noopener">원장 소개 ↗</a>
+        </article>
+        <article class="doc">
+          <div class="doc-photo placeholder"><span class="initial" aria-hidden="true">한</span><small>사진 교체 예정</small><span class="badge">ORTHODONTICS</span></div>
+          <h3>한이연 <small>교정원장</small></h3>
+          <span class="spec">치과교정과 전문의</span>
+          <div class="fields"><span>브라켓 교정</span><span>투명교정</span><span>성장기교정</span></div>
+          <a class="arrow-link" href="https://yidoinsight.com/doctors/#han-iyeon" target="_blank" rel="noopener">원장 소개 ↗</a>
+        </article>
+      </div>
+      <div class="doc-note">
+        <span>공식 홈페이지 게시 정보 확인 2026.11.04</span>
+        <a class="arrow-link" href="https://seoulyido.com/sub/about/yidodoctors.php" target="_blank" rel="noopener">공식 홈페이지 약력 ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ + POLICY -->
+  <section class="section" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="idx">자주 묻는 질문</span>
+        <div>
+          <h2 id="faq-title">이런 질문에서 시작해 보세요</h2>
+          <p>치료 이름을 몰라도 괜찮습니다. 지금 궁금한 질문을 골라 관련 글로 이어서 읽어보세요.</p>
+        </div>
+      </div>
+      <div class="faq-grid">
+        <div class="faq" id="faq-list"></div>
+        <aside class="policy" aria-labelledby="policy-title">
+          <div class="eyebrow">읽기 전에</div>
+          <h3 id="policy-title">이 사이트의 글은 진료를 대신하지 않습니다</h3>
+          <ol>
+            <li><strong>쉽고 분명하게</strong><span>어려운 용어는 풀어 쓰고, 사람마다 달라질 수 있는 부분을 함께 적습니다.</span></li>
+            <li><strong>확인할 수 있게</strong><span>정책이나 공공정보는 참고한 기관과 확인 시점을 기록합니다.</span></li>
+            <li><strong>달라지면 고치기</strong><span>진료정보와 제도가 바뀌면 관련 글을 다시 살펴보고 수정합니다.</span></li>
+          </ol>
+          <span class="stamp">의료진 발언과 편집부 정리 글은 구분해 표시합니다</span>
+          <a href="https://yidoinsight.com/editorial-policy/" target="_blank" rel="noopener">콘텐츠를 만드는 기준 ↗</a>
+        </aside>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <a class="brand" href="#top">
+          <span class="brand-mark" aria-hidden="true"><span>Y</span><span>I</span><span>D</span><span>O</span></span>
+          <span class="brand-text"><strong>서울이도치과의원</strong><small>DOCTORINSIGHT INDEX</small></span>
+        </a>
+        <p>서울특별시 마포구 만리재로 24, 2층 (신공덕동 178)<br>공덕역 5·6번 출구 도보 약 3분 · 02-706-2080</p>
+      </div>
+      <div class="foot-col">
+        <h4>찾아보기</h4>
+        <ul>
+          <li><a href="#chart">증상으로 찾기</a></li>
+          <li><a href="#index">치아백과</a></li>
+          <li><a href="#reading">칼럼</a></li>
+          <li><a href="https://yidoinsight.com/cases/" target="_blank" rel="noopener">임상케이스</a></li>
+          <li><a href="#doctors">의료진</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h4>오시는 길</h4>
+        <ul>
+          <li><a href="https://yidoinsight.com/visit/#singongdeok" target="_blank" rel="noopener">신공덕동 치과 안내</a></li>
+          <li><a href="https://yidoinsight.com/visit/#from-gongdeok" target="_blank" rel="noopener">공덕동에서 오시는 길</a></li>
+          <li><a href="https://yidoinsight.com/visit/#from-dohwa" target="_blank" rel="noopener">도화동에서 오시는 길</a></li>
+          <li><a href="https://yidoinsight.com/visit/#from-ahyeon" target="_blank" rel="noopener">아현동에서 오시는 길</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h4>안내</h4>
+        <ul>
+          <li><a href="https://yidoinsight.com/sources/" target="_blank" rel="noopener">참고자료</a></li>
+          <li><a href="https://yidoinsight.com/editorial-policy/" target="_blank" rel="noopener">콘텐츠 안내</a></li>
+          <li><a href="https://yidoinsight.com/privacy/" target="_blank" rel="noopener">개인정보처리방침</a></li>
+          <li><a href="https://pf.kakao.com/_JKXBX" target="_blank" rel="noopener">카카오 문의 ↗</a></li>
+          <li><a href="https://seoulyido.com/" target="_blank" rel="noopener">병원 공식 홈페이지 ↗</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>이 사이트의 의료정보는 일반적인 안내이며, 개인의 진단과 치료를 대신하지 않습니다.</span>
+      <span class="mono">© SEOUL YIDO DENTAL OFFICE · DOCTORINSIGHT</span>
+    </div>
+  </div>
+</footer>
+
+<nav class="dock" aria-label="빠른 메뉴">
+  <a href="#top" id="dock-search"><span class="mono">SEARCH</span>검색</a>
+  <a href="#visit"><span class="mono">02-706-2080</span>진료시간</a>
+  <a href="https://booking.naver.com/booking/13/bizes/1712749" target="_blank" rel="noopener"><span class="mono">NAVER</span>예약하기</a>
+</nav>
+
+<script>
+(() => {
+  const BASE = "https://yidoinsight.com";
+  const CATS = [
+    ["SY", "증상·통증"], ["DX", "검사·진단"], ["EN", "보존·신경치료"], ["PR", "보철·수복"], ["IM", "임플란트·발치"],
+    ["PE", "잇몸·예방"], ["OR", "교정·성장"], ["TM", "턱관절·구강외과"], ["IN", "보험·비용"]
+  ];
+  const TERMS = [
+    ["SY-01", "시린이", "tooth-sensitivity", "찬물, 바람, 양치 자극에 짧고 날카로운 통증이 느껴지는 상태를 설명합니다.", "시림 이시림 찬물"],
+    ["DX-01", "교합", "occlusion", "입을 다물거나 씹을 때 위아래 치아가 만나는 관계입니다.", "맞물림 씹기"],
+    ["EN-01", "근관치료", "root-canal-treatment", "치아 안쪽의 감염되거나 손상된 치수 조직을 제거하고 내부를 세척·충전하는 치료입니다.", "신경치료 신경"],
+    ["EN-02", "복합레진", "composite-resin", "치아색 재료를 치아에 접착해 작은 결손이나 충치 부위를 수복하는 방법입니다.", "레진 때우기"],
+    ["EN-03", "치아우식증", "tooth-decay", "구강 내 세균이 만든 산으로 치아 조직이 손상되는 질환입니다.", "충치"],
+    ["PR-01", "치과 크라운", "dental-crown", "남아 있는 치아를 덮어 형태와 기능을 보완하는 고정성 보철물입니다.", "크라운 씌우기 보철"],
+    ["PR-02", "인레이·온레이", "inlay-onlay", "치아 일부를 본떠 제작한 수복물을 붙여 결손 부위를 보완하는 치료입니다.", "인레이 온레이 때우기"],
+    ["PR-03", "치과 브리지", "dental-bridge", "빠진 치아 양옆의 치아 등을 지지대로 사용해 결손 부위를 연결하는 고정성 보철입니다.", "브릿지 빠진 치아"],
+    ["PR-04", "틀니", "dentures", "여러 개의 치아가 없을 때 끼웠다 뺄 수 있도록 제작하는 보철물입니다.", "의치 부분틀니"],
+    ["IM-01", "치과임플란트", "dental-implant", "치아가 없는 부위의 턱뼈에 인공치근을 심고 상부 보철물을 연결하는 치료입니다.", "임플란트 빠진 치아"],
+    ["IM-02", "골이식", "bone-grafting", "임플란트 등을 계획할 때 부족한 치조골을 보완하기 위해 고려하는 술식입니다.", "뼈이식 임플란트"],
+    ["IM-03", "사랑니", "wisdom-tooth", "가장 뒤쪽에서 나오는 세 번째 큰어금니로 위치와 주변 상태에 따라 관리가 달라집니다.", "발치 매복"],
+    ["PE-01", "치주염", "periodontitis", "치아를 지지하는 잇몸과 주변 조직에 염증이 진행된 상태를 말합니다.", "잇몸 출혈 풍치 잇몸병"],
+    ["PE-02", "스케일링", "scaling", "칫솔질로 제거하기 어려운 치석과 침착물을 기구로 제거하는 처치입니다.", "치석 잇몸"],
+    ["OR-01", "투명교정장치", "clear-aligners", "치아 이동을 위해 단계별로 교체해 착용하는 투명한 가철성 교정장치입니다.", "교정 투명교정"],
+    ["OR-02", "성장기교정", "growth-orthodontics", "성장 중인 어린이의 치열과 턱 성장 상태를 살펴 필요한 시기와 방법을 정하는 교정 진료입니다.", "교정 아이 어린이 소아"],
+    ["OR-03", "교정 유지장치", "orthodontic-retainers", "교정치료 후 치아가 이동한 위치에 적응하도록 돕는 고정식 또는 가철식 장치입니다.", "교정 유지 리테이너"],
+    ["TM-01", "이갈이·이악물기", "bruxism", "잠을 자거나 깨어 있을 때 이를 갈거나 강하게 무는 반복 행동입니다.", "이갈이 턱"],
+    ["TM-02", "턱관절장애", "temporomandibular-disorder", "턱관절이나 씹는 근육에서 통증, 소리, 입 벌리기 제한이 나타나는 상태를 포괄합니다.", "턱 소리 턱관절"],
+    ["IN-01", "치과임플란트 건강보험", "dental-implant-insurance", "연령, 치아 상태, 인정 개수와 본인부담 등 일반 급여 기준을 확인합니다.", "보험 비용 급여 임플란트"]
+  ].map(([code, name, slug, desc, kw]) => ({ code, name, slug, desc, kw, cat: CATS.find(c => c[0] === code.slice(0, 2))[1], url: `${BASE}/knowledge/${slug}/` }));
+  const byCode = Object.fromEntries(TERMS.map(t => [t.code, t]));
+
+  const COLUMNS = [
+    ["진료를 바라보는 마음", "치료를 결정하기 전, 제가 먼저 생각하는 것", "치료의 필요성과 환자의 건강·생활을 함께 살피는 관점을 정리했습니다.", "고성민 원장 진료분야 · 편집 칼럼", "/columns/attention-to-one-patient/"],
+    ["편안하게 씹는다는 것", "보철의 완성은, 다시 편하게 씹는 데 있습니다", "치아 모양뿐 아니라 잇몸과 맞물림, 일상에서의 사용까지 살펴봅니다.", "박지현 원장 진료분야 · 편집 칼럼", "/columns/form-and-function/"],
+    ["자연스러운 미소", "자연스러운 미소를 위해, 덜 바꾸는 방법부터 생각합니다", "어울리는 부분은 남기고 필요한 변화만 구분하는 심미치료의 기준.", "원소윤 원장 진료분야 · 편집 칼럼", "/columns/care-in-the-details/"]
+  ];
+  const GUIDES = [
+    ["Implant", "공덕 임플란트 상담 준비", "치료를 제안한 이유와 견적에 포함된 범위를 같은 기준으로 살펴봅니다.", "임플란트 비용 견적", "/guides/gongdeok-implant-consultation/"],
+    ["Restoration", "보철 상담, 모양과 씹는 느낌", "원하는 모습과 씹을 때의 불편을 나누어 이야기해 보세요.", "보철 크라운", "/journal/restoration-consultation/"],
+    ["Orthodontics", "교정 상담 전 물어볼 것", "교정 상담을 준비할 때 어떤 질문부터 하면 좋을지 정리했습니다.", "교정", "/journal/orthodontic-consultation/"],
+    ["Gum care", "양치할 때 잇몸에서 피가 난다면", "일상에서 느낀 불편함을 정리하고 상담을 준비해 보세요.", "잇몸 출혈 피", "/journal/gum-health/"],
+    ["First visit", "첫 방문, 무엇을 이야기할까요?", "불편한 점과 궁금한 내용을 정리해 상담에 가져가세요.", "첫 방문 처음", "/journal/first-visit/"]
+  ];
+
+  const FAQ = [
+    ["공덕역 근처에서 치과 상담을 받으려면 무엇을 준비할까요?", "서울이도치과의 주소는 서울 마포구 만리재로 24, 2층입니다. 위치와 연락처를 확인하고, 불편한 점과 상담할 질문을 정리해 보세요.", "위치·방문 안내", "/visit/"],
+    ["임플란트 상담에서 비용 말고 무엇을 물어봐야 할까요?", "제안받은 치료의 이유, 견적에 포함된 항목, 치료 일정과 이후 관리에 관한 질문을 정리한 글입니다. 실제 비용과 치료 계획은 진찰 후 병원에 확인해 주세요.", "임플란트 상담 준비", "/guides/gongdeok-implant-consultation/"],
+    ["찬물을 마시면 이가 시려요. 어떤 내용을 읽으면 좋을까요?", "치아백과의 시린이 설명에서 용어의 뜻과 상담 전 확인할 질문을 살펴볼 수 있습니다. 언제, 어느 부위가 불편한지 진료 때 알려주세요.", "시린이 설명 읽기", "/knowledge/tooth-sensitivity/"],
+    ["양치할 때 잇몸에서 피가 나요. 상담 전에 무엇을 정리할까요?", "잇몸 건강 글에서 일상에서 느낀 불편함을 정리하는 방법을 읽어보세요. 글은 일반적인 상담 준비 안내이며 개인의 진단을 대신하지 않습니다.", "잇몸 건강 이야기", "/journal/gum-health/"],
+    ["크라운과 보철 재료를 상담할 때 어떤 질문을 하나요?", "원하는 색과 모양, 씹을 때 느끼는 불편을 나누어 정리해 보세요. 재료의 추천 이유, 제작 과정과 관리에 대해 확인할 질문을 다룹니다.", "보철 상담 이야기", "/journal/restoration-consultation/"],
+    ["아이 치아교정은 언제 상담해야 할지 궁금해요.", "성장기 교정에 쓰이는 용어와 상담에서 확인할 질문을 치아백과에 정리했습니다. 필요한 시기와 방법은 현재 상태를 확인한 의료진과 상의해 주세요.", "성장기 교정 설명", "/knowledge/growth-orthodontics/"]
+  ];
+
+  const ZONES = {
+    front:    { name: "앞니", code: "x1–x3", hint: "가운데 앞니부터 송곳니까지", items: [["찬물이나 바람에 짧게 시려요", ["SY-01"]], ["끝이 조금 깨졌거나 색이 달라 보여요", ["EN-02", "PR-01"]], ["치열이 고르지 않거나 사이가 벌어졌어요", ["OR-01", "OR-02"]], ["교정 후 다시 틀어질까 걱정돼요", ["OR-03"]]], read: 2 },
+    premolar: { name: "작은어금니", code: "x4–x5", hint: "송곳니 바로 뒤의 두 개", items: [["씹을 때 시큰하거나 시려요", ["SY-01", "DX-01"]], ["까맣게 보이는 부분이 있어요", ["EN-03", "EN-02"]], ["때운 곳이 떨어졌어요", ["PR-02", "EN-02"]]], read: 1 },
+    molar:    { name: "큰어금니", code: "x6–x7", hint: "음식을 씹는 넓은 어금니", items: [["단 것이나 뜨거운 것에 욱신거려요", ["EN-03", "EN-01"]], ["씌운 치아가 흔들리거나 깨졌어요", ["PR-01", "PR-02"]], ["빠진 자리를 오래 비워 두었어요", ["IM-01", "PR-03", "IM-02"]], ["여러 개가 없어 씹기가 어려워요", ["PR-04", "IN-01"]]], read: 0 },
+    wisdom:   { name: "사랑니", code: "x8", hint: "가장 안쪽, 없는 사람도 있습니다", items: [["맨 뒤 잇몸이 붓고 아파요", ["IM-03"]], ["입이 잘 벌어지지 않아요", ["IM-03", "TM-02"]]], read: 4 },
+    gum:      { name: "잇몸", code: "GUM", hint: "치아를 감싸고 지지하는 조직", items: [["양치할 때 피가 나요", ["PE-01", "PE-02"]], ["잇몸이 내려가 치아가 길어 보여요", ["PE-01", "SY-01"]], ["치석이 보이고 입냄새가 신경 쓰여요", ["PE-02"]]], read: 3 },
+    tmj:      { name: "턱관절", code: "TMJ", hint: "귀 앞쪽, 입을 여닫는 관절", items: [["입을 벌릴 때 딱 소리가 나요", ["TM-02"]], ["아침에 턱이 뻐근해요", ["TM-01", "TM-02"]], ["윗니와 아랫니가 맞지 않는 느낌이에요", ["DX-01"]]], read: 4 }
+  };
+  const zoneOf = n => { const d = n % 10; return d <= 3 ? "front" : d <= 5 ? "premolar" : d <= 7 ? "molar" : "wisdom"; };
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const $ = id => document.getElementById(id);
+
+  /* ---------- search ---------- */
+  const q = $("q"), results = $("results");
+  const corpus = [
+    ...TERMS.map(t => ({ code: t.code, title: t.name, desc: t.desc, type: "치아백과 · " + t.cat, url: t.url, hay: [t.name, t.kw, t.desc, t.cat].join(" ") })),
+    ...GUIDES.map(g => ({ code: "GUIDE", title: g[1], desc: g[2], type: "상담 준비", url: BASE + g[4], hay: [g[1], g[2], g[3]].join(" ") })),
+    ...COLUMNS.map(c => ({ code: "COL", title: c[1], desc: c[2], type: "원장 칼럼", url: BASE + c[4], hay: [c[1], c[2], c[3]].join(" ") }))
+  ];
+  const hl = (text, words) => {
+    let out = esc(text);
+    words.forEach(w => { if (w) out = out.split(esc(w)).join(`<mark>${esc(w)}</mark>`); });
+    return out;
+  };
+  function runSearch() {
+    const raw = q.value.trim();
+    const words = raw.split(/\s+/).filter(Boolean);
+    if (!words.length) {
+      results.innerHTML = `<div class="results-head"><span>검색어를 입력하면 바로 결과가 나옵니다</span><span>${corpus.length}개 항목</span></div>`;
+      return;
+    }
+    const scored = corpus.map(item => {
+      let s = 0;
+      words.forEach(w => { if (item.title.includes(w)) s += 3; if (item.hay.includes(w)) s += 1; });
+      return { item, s };
+    }).filter(x => x.s > 0).sort((a, b) => b.s - a.s);
+    const shown = scored.slice(0, 5);
+    results.innerHTML = `<div class="results-head"><span>‘${esc(raw)}’ 관련 ${scored.length}건</span><span>${scored.length > 5 ? "상위 5건" : ""}</span></div>` +
+      (shown.length ? shown.map(({ item }) => `
+        <a class="result" href="${item.url}" target="_blank" rel="noopener">
+          <span class="r-code">${item.code}</span>
+          <span><span class="r-title">${hl(item.title, words)}</span><span class="r-desc">${hl(item.desc, words)}</span></span>
+          <span class="r-type">${esc(item.type)}</span>
+        </a>`).join("") :
+        `<p class="results-empty">찾는 내용이 없습니다. 증상으로 찾기에서 불편한 부위를 눌러 보거나, 다른 말로 검색해 보세요.</p>`);
+  }
+  q.addEventListener("input", runSearch);
+  $("search-form").addEventListener("submit", e => { e.preventDefault(); runSearch(); });
+  document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => { q.value = c.textContent; runSearch(); q.focus(); }));
+  runSearch();
+
+  /* ---------- odontogram ---------- */
+  const upper = [18, 17, 16, 15, 14, 13, 12, 11, null, 21, 22, 23, 24, 25, 26, 27, 28];
+  const lower = [48, 47, 46, 45, 44, 43, 42, 41, null, 31, 32, 33, 34, 35, 36, 37, 38];
+  const drawArch = (el, nums) => {
+    el.innerHTML = nums.map(n => n === null ? `<span class="mid" aria-hidden="true"></span>` :
+      `<button type="button" class="tooth" data-n="${n}" data-z="${zoneOf(n)}" aria-label="${n}번 치아 · ${ZONES[zoneOf(n)].name}">${n}</button>`).join("");
+  };
+  drawArch($("arch-upper"), upper); drawArch($("arch-lower"), lower);
+
+  const zoneBtns = $("zone-btns");
+  zoneBtns.innerHTML = Object.entries(ZONES).map(([k, z]) => `<button type="button" class="zone-btn" data-zone="${k}" aria-pressed="false">${z.name}<span class="mono">${z.code}</span></button>`).join("");
+
+  const guideFor = i => GUIDES[i];
+  function selectZone(key, tooth) {
+    const z = ZONES[key];
+    document.querySelectorAll(".tooth").forEach(t => {
+      const on = key === "gum" || (key !== "tmj" && t.dataset.z === key);
+      t.classList.toggle("on", on);
+    });
+    zoneBtns.querySelectorAll(".zone-btn").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.zone === key)));
+    const g = guideFor(z.read);
+    const teethLine = (key === "gum" || key === "tmj") ? z.code : `${tooth ? tooth + "번 · " : ""}${z.code} 부위`;
+    $("zone-panel").innerHTML = `
+      <div class="eyebrow"><b>●</b> 선택한 부위</div>
+      <div class="zone-title"><h3>${z.name}</h3><span class="mono">${esc(teethLine)}</span></div>
+      <p>${z.hint}. 아래에서 지금 느끼는 불편과 가까운 것을 골라 관련 용어를 읽어보세요.</p>
+      <ul class="sym-list">${z.items.map(([qq, refs]) => `
+        <li><span class="q">“${qq}”</span>
+          <span class="refs">${refs.map(c => `<a class="ref" href="#term-${c}" data-code="${c}"><span class="mono">${c}</span>${byCode[c].name}</a>`).join("")}</span>
+        </li>`).join("")}
+      </ul>
+      <a class="arrow-link" href="${BASE + g[4]}" target="_blank" rel="noopener">함께 읽기 · ${g[1]} ↗</a>
+      <p class="disclaimer">증상 문구는 상담 준비를 돕는 예시입니다. 글만으로 원인을 판단하지 말고 언제, 어느 부위가 불편한지 진료 때 알려주세요.</p>`;
+  }
+  document.addEventListener("click", e => {
+    const t = e.target.closest(".tooth");
+    if (t) return selectZone(t.dataset.z, t.dataset.n);
+    const b = e.target.closest(".zone-btn");
+    if (b) return selectZone(b.dataset.zone);
+    const r = e.target.closest(".ref");
+    if (r) { setTab("all"); flash(r.dataset.code); }
+  });
+  selectZone("molar", "36");
+
+  /* ---------- index ---------- */
+  const tabs = $("tabs"), list = $("index-list");
+  let current = "all";
+  const tabDefs = [["all", "전체", TERMS.length], ...CATS.map(([c, n]) => [c, n, TERMS.filter(t => t.code.startsWith(c)).length])];
+  tabs.innerHTML = tabDefs.map(([k, n, c]) => `<button type="button" class="tab" role="tab" data-k="${k}" aria-selected="${k === "all"}">${n}<span class="mono">${c}</span></button>`).join("");
+  function renderList() {
+    const rows = TERMS.filter(t => current === "all" || t.code.startsWith(current));
+    list.innerHTML = rows.map(t => `
+      <li><a class="term" id="term-${t.code}" href="${t.url}" target="_blank" rel="noopener">
+        <span class="t-code">${t.code}</span>
+        <span class="t-name">${t.name}</span>
+        <span class="t-desc">${t.desc}</span>
+        <span class="t-cat">${t.cat}</span>
+        <span class="go" aria-hidden="true">↗</span>
+      </a></li>`).join("");
+  }
+  function setTab(k) {
+    current = k;
+    tabs.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.k === k)));
+    renderList();
+  }
+  function flash(code) {
+    requestAnimationFrame(() => {
+      const el = $("term-" + code);
+      if (!el) return;
+      el.classList.add("flash");
+      setTimeout(() => el.classList.remove("flash"), 1600);
+    });
+  }
+  tabs.addEventListener("click", e => { const b = e.target.closest(".tab"); if (b) setTab(b.dataset.k); });
+  renderList();
+
+  /* ---------- reading ---------- */
+  $("columns").innerHTML = COLUMNS.map(c => `
+    <a class="article" href="${BASE + c[4]}" target="_blank" rel="noopener">
+      <span class="a-tag">${c[0]}</span>
+      <span class="a-title">${c[1]}</span>
+      <span class="a-desc">${c[2]}</span>
+      <span class="a-meta">${c[3]}</span>
+      <span class="go" aria-hidden="true">↗</span>
+    </a>`).join("");
+  $("guides").innerHTML = GUIDES.map(g => `
+    <a class="article" href="${BASE + g[4]}" target="_blank" rel="noopener">
+      <span class="a-tag">${g[0]}</span>
+      <span class="a-title">${g[1]}</span>
+      <span class="a-desc">${g[2]}</span>
+      <span class="go" aria-hidden="true">↗</span>
+    </a>`).join("");
+
+  /* ---------- faq ---------- */
+  $("faq-list").innerHTML = FAQ.map((f, i) => `
+    <details ${i === 0 ? "open" : ""}>
+      <summary><span class="mono">Q${i + 1}</span><span>${f[0]}</span><span class="pm" aria-hidden="true">+</span></summary>
+      <div class="answer"><p>${f[1]}</p><a class="arrow-link" href="${BASE + f[3]}" target="_blank" rel="noopener">${f[2]} ↗</a></div>
+    </details>`).join("");
+
+  /* ---------- today status (KST) ---------- */
+  const HOURS = { 0: null, 1: [930, 2030], 2: [930, 1830], 3: [930, 1830], 4: [930, 2030], 5: [930, 1830], 6: [930, 1430] };
+  const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
+  const fmt = n => `${String(Math.floor(n / 100)).padStart(2, "0")}:${String(n % 100).padStart(2, "0")}`;
+  function updateStatus() {
+    let now;
+    try { now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" })); } catch (e) { now = new Date(); }
+    const d = now.getDay(), t = now.getHours() * 100 + now.getMinutes();
+    document.querySelectorAll(".hours tr").forEach(tr => tr.classList.toggle("today", tr.dataset.days.split(",").map(Number).includes(d)));
+    const h = HOURS[d];
+    let state = "closed", text = "", sub = "";
+    const nextOpen = () => { for (let i = 1; i <= 7; i++) { const nd = (d + i) % 7; if (HOURS[nd]) return `${DAYS[nd]}요일 ${fmt(HOURS[nd][0])}`; } return ""; };
+    if (!h) { text = "오늘은 휴진입니다"; sub = `다음 진료 ${nextOpen()}`; }
+    else if (t < h[0]) { state = "soon"; text = `오늘 ${fmt(h[0])}에 진료 시작`; sub = `오늘 ${fmt(h[0])} – ${fmt(h[1])}`; }
+    else if (t >= h[1]) { text = "오늘 진료가 끝났습니다"; sub = `다음 진료 ${nextOpen()}`; }
+    else if (d !== 6 && t >= 1230 && t < 1400) { state = "lunch"; text = "점심시간입니다"; sub = "14:00부터 다시 진료합니다"; }
+    else { state = "open"; text = `지금 진료 중 · ${fmt(h[1])}까지`; sub = d === 1 || d === 4 ? "오늘은 야간진료 하는 날입니다" : "한국 시간 기준 · 공휴일은 휴진"; }
+    $("status").dataset.state = state; $("status-text").textContent = text; $("status-sub").textContent = sub;
+  }
+  updateStatus(); setInterval(updateStatus, 60000);
+
+  /* ---------- copy phone ---------- */
+  const toast = msg => { const el = document.createElement("div"); el.className = "toast"; el.textContent = msg; document.body.appendChild(el); setTimeout(() => el.remove(), 1600); };
+  $("copy-phone").addEventListener("click", () => {
+    const num = $("phone").textContent;
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents($("phone")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("번호를 선택했습니다. 복사해서 사용하세요"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(num).then(() => toast("전화번호를 복사했습니다"), fallback); else fallback();
+  });
+  $("dock-search").addEventListener("click", () => setTimeout(() => q.focus(), 300));
+})();
+</script>
+</body>
+</html>

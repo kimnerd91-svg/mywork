@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>닥터인사이트 상담 노트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;700;800&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout concept: 왼쪽은 3단계 작성기, 오른쪽은 줄 노트 한 장(진료실에서 그대로 보여주는 화면). 형광펜 노랑은 '선택됨'에만 사용 */
+:root {
+  --paper: #F3F4F1;
+  --surface: #FFFFFF;
+  --ink: #1C2333;
+  --muted: #5F6776;
+  --faint: #8C93A0;
+  --line: #E0E2E5;
+  --rule: #D9E2F0;          /* 노트 괘선 */
+  --pen: #2D47B0;           /* 볼펜 파랑: 버튼·링크 */
+  --pen-soft: #E6EBFA;
+  --hl: #FFE36E;            /* 형광펜: 선택된 항목 */
+  --hl-ink: #1C2333;
+  --margin: #E98A7E;        /* 노트 왼쪽 여백선 */
+  --font-ui: "Gothic A1", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-note: "Gowun Dodum", "Gothic A1", "Apple SD Gothic Neo", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --r: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --paper: #0F1218; --surface: #171C25; --ink: #E7EAF0; --muted: #A0A8B6; --faint: #6E7684; --line: #262D39; --rule: #233049; --pen: #93A9FF; --pen-soft: #1D2747; --hl: #E3C53A; --hl-ink: #141414; --margin: #B4574C; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --paper: #0F1218; --surface: #171C25; --ink: #E7EAF0; --muted: #A0A8B6; --faint: #6E7684; --line: #262D39; --rule: #233049; --pen: #93A9FF; --pen-soft: #1D2747; --hl: #E3C53A; --hl-ink: #141414; --margin: #B4574C; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-ui); font-size: 1rem; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--surface); }
+a { color: inherit; }
+button, input, textarea { font: inherit; color: inherit; }
+h1, h2, h3 { margin: 0; letter-spacing: -0.02em; line-height: 1.3; text-wrap: balance; }
+p { margin: 0; }
+:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.wrap { max-width: 1200px; margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 760px) { .wrap { padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); } }
+
+/* app bar */
+.appbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: var(--surface); border-bottom: 1px solid var(--line); }
+.appbar .wrap { display: flex; align-items: center; gap: 16px; min-height: 60px; }
+.appbar .brand { text-decoration: none; display: grid; line-height: 1.2; }
+.appbar .brand strong { font-weight: 800; font-size: 1rem; }
+.appbar .brand small { font-size: 0.75rem; color: var(--muted); }
+.appbar .links { margin-left: auto; display: flex; gap: 18px; align-items: center; font-size: 0.875rem; }
+.appbar .links a { text-decoration: none; color: var(--muted); }
+.appbar .links a.cta { color: #fff; background: var(--pen); padding: 8px 14px; border-radius: 999px; font-weight: 700; }
+@media (max-width: 720px) { .appbar .links a:not(.cta) { display: none; } }
+
+/* intro */
+.intro .wrap { padding-block: 40px 28px; display: grid; gap: 18px; }
+.intro h1 { font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.75rem); font-weight: 800; }
+.intro h1 mark { background: linear-gradient(transparent 55%, var(--hl) 55%); color: inherit; padding: 0 2px; }
+.intro p { color: var(--muted); max-width: 40em; }
+.steps { display: flex; gap: 8px; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; }
+.steps li { display: inline-flex; align-items: center; gap: 8px; font-size: 0.875rem; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px 6px 6px; }
+.steps li .mono { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--paper); font-size: 0.75rem; }
+.example { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.875rem; color: var(--muted); background: var(--pen-soft); border-radius: var(--r); padding: 10px 14px; }
+.example button { border: 0; background: transparent; color: var(--pen); font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0; }
+
+/* layout */
+.app .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: 32px; align-items: start; padding-bottom: 120px; }
+@media (max-width: 1000px) { .app .wrap { grid-template-columns: minmax(0, 1fr); } }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+@media (max-width: 520px) { .card { padding: 18px 16px; } }
+.card + .card { margin-top: 16px; }
+.card-head { display: flex; gap: 12px; align-items: baseline; }
+.card-head .mono { font-size: 0.75rem; color: var(--pen); font-weight: 500; }
+.card-head h2 { font-size: 1.25rem; font-weight: 800; }
+.card-head p { color: var(--muted); font-size: 0.875rem; margin-left: auto; }
+@media (max-width: 640px) { .card-head { flex-wrap: wrap; } .card-head p { margin-left: 0; width: 100%; } }
+.field { display: grid; gap: 10px; }
+.field > .label { font-size: 0.875rem; font-weight: 700; display: flex; justify-content: space-between; gap: 8px; }
+.field > .label small { font-weight: 400; color: var(--faint); }
+
+/* topics */
+.topics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .topics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.topic { text-align: left; border: 1.5px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 14px; cursor: pointer; display: grid; gap: 4px; transition: border-color .15s, background .15s; }
+.topic strong { font-size: 1rem; font-weight: 700; }
+.topic span { font-size: 0.8125rem; color: var(--muted); }
+.topic:hover { border-color: var(--ink); }
+.topic[aria-pressed="true"] { border-color: var(--ink); background: var(--hl); color: var(--hl-ink); }
+.topic[aria-pressed="true"] span { color: var(--hl-ink); opacity: .75; }
+
+/* chips */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-size: 0.9375rem; }
+.chip:hover { border-color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+/* mouth map */
+.mouth { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; max-width: 420px; }
+.mouth .jaw { grid-column: 1 / -1; font-size: 0.75rem; color: var(--faint); display: flex; justify-content: space-between; }
+.area { border: 1.5px solid var(--line); background: var(--surface); padding: 12px 6px; cursor: pointer; display: grid; gap: 2px; justify-items: center; font-size: 0.875rem; }
+.area .mono { font-size: 0.6875rem; color: var(--faint); }
+.area.r-up { border-radius: 40px 8px 6px 6px; } .area.f-up { border-radius: 8px 8px 6px 6px; } .area.l-up { border-radius: 8px 40px 6px 6px; }
+.area.r-dn { border-radius: 6px 6px 8px 40px; } .area.f-dn { border-radius: 6px 6px 8px 8px; } .area.l-dn { border-radius: 6px 6px 40px 8px; }
+.area:hover { border-color: var(--ink); }
+.area[aria-pressed="true"] { background: var(--hl); border-color: var(--ink); color: var(--hl-ink); }
+.area[aria-pressed="true"] .mono { color: var(--hl-ink); }
+
+/* range */
+.range { display: grid; gap: 6px; }
+.range input { width: 100%; accent-color: var(--pen); }
+.range .scale { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--faint); }
+.range output { font-family: var(--font-mono); font-weight: 500; }
+
+/* questions */
+.qgroup { display: grid; gap: 4px; }
+.qgroup h3 { font-size: 0.8125rem; color: var(--muted); font-weight: 700; padding-bottom: 6px; border-bottom: 1px solid var(--line); margin-top: 6px; }
+.q { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px 6px; border-radius: 6px; cursor: pointer; }
+.q:hover { background: var(--paper); }
+.q input { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--pen); }
+.q input:checked + span { background: linear-gradient(transparent 58%, var(--hl) 58%); }
+.add { display: flex; gap: 8px; }
+.add input { flex: 1; min-width: 0; border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--surface); }
+.add input:focus { border-color: var(--pen); outline: 0; }
+.btn { border: 1.5px solid var(--ink); background: var(--surface); border-radius: 8px; padding: 10px 16px; cursor: pointer; font-weight: 700; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.9375rem; }
+.btn.primary { background: var(--pen); border-color: var(--pen); color: #fff; }
+.btn:hover { filter: brightness(.95); }
+.empty-q { color: var(--faint); font-size: 0.9375rem; }
+
+/* note */
+.note-col { position: sticky; top: calc(76px + env(safe-area-inset-top, 0px)); display: grid; gap: 12px; }
+@media (max-width: 1000px) { .note-col { position: static; } }
+.note { background: var(--surface); border-radius: 4px 4px var(--r) var(--r); box-shadow: 0 1px 0 var(--line), 0 18px 40px -24px rgba(20, 30, 60, .35); position: relative; overflow: hidden; }
+.note::before { content: ""; position: absolute; top: 0; bottom: 0; left: 44px; width: 1px; background: var(--margin); opacity: .6; }
+.note-top { padding: 20px 20px 14px 60px; border-bottom: 2px solid var(--ink); display: grid; gap: 4px; }
+.note-top .row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.note-top h2 { font-size: 1.375rem; font-weight: 800; }
+.note-top .mono { font-size: 0.75rem; color: var(--muted); }
+.note-top small { color: var(--muted); font-size: 0.8125rem; }
+.note-body { padding: 4px 20px 20px 60px; font-family: var(--font-note); font-size: 1rem; line-height: 32px;
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, var(--rule) 31px, var(--rule) 32px); background-position: 0 4px; }
+.note-row { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 8px; }
+.note-row .k { font-family: var(--font-ui); font-size: 0.75rem; color: var(--faint); font-weight: 700; }
+.note-row .v.blank { color: var(--faint); }
+.note-row .v mark { background: linear-gradient(transparent 55%, var(--hl) 55%); color: inherit; }
+.pain-bar { display: inline-flex; gap: 2px; vertical-align: middle; margin-right: 8px; }
+.pain-bar i { width: 8px; height: 12px; border-radius: 2px; background: var(--line); display: block; }
+.pain-bar i.on { background: var(--ink); }
+.note-q { list-style: none; margin: 0; padding: 0; counter-reset: q; }
+.note-q li { counter-increment: q; display: grid; grid-template-columns: 26px minmax(0, 1fr); }
+.note-q li::before { content: "Q" counter(q); font-family: var(--font-mono); font-size: 0.75rem; color: var(--pen); }
+.note-memo { width: 100%; border: 0; background: transparent; resize: vertical; font-family: var(--font-note); font-size: 1rem; line-height: 32px; padding: 0; min-height: 96px; outline: 0; color: var(--ink); }
+.note-memo::placeholder { color: var(--faint); }
+.note-foot { padding: 12px 20px 16px 60px; font-size: 0.75rem; color: var(--faint); border-top: 1px dashed var(--line); font-family: var(--font-ui); }
+@media (max-width: 520px) { .note::before { left: 28px; } .note-top, .note-body, .note-foot { padding-left: 40px; padding-right: 14px; } .note-row { grid-template-columns: 64px minmax(0, 1fr); } }
+.note-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.note-actions .wide { grid-column: 1 / -1; }
+.saved { font-size: 0.75rem; color: var(--faint); text-align: center; }
+
+/* reading + clinic */
+.related { display: grid; gap: 8px; }
+.related a { display: flex; justify-content: space-between; gap: 12px; text-decoration: none; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 0.9375rem; }
+.related a span { color: var(--faint); font-size: 0.8125rem; white-space: nowrap; }
+.related a:hover { border-color: var(--pen); }
+.clinic { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 16px; font-size: 0.9375rem; }
+.clinic dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-variant-numeric: tabular-nums; }
+.clinic dt { color: var(--muted); }
+.clinic dd { margin: 0; font-family: var(--font-mono); font-size: 0.875rem; }
+.clinic .phone { font-family: var(--font-mono); font-size: 1.375rem; user-select: all; }
+.clinic p { color: var(--muted); }
+
+/* tab bar (mobile) */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--surface); border-top: 1px solid var(--line); display: none; grid-template-columns: repeat(3, minmax(0, 1fr)); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.tabbar a { text-align: center; text-decoration: none; padding: 10px 4px; font-size: 0.8125rem; font-weight: 700; display: grid; gap: 2px; justify-items: center; color: var(--muted); }
+.tabbar a b { font-family: var(--font-mono); font-size: 0.6875rem; background: var(--hl); color: var(--hl-ink); border-radius: 999px; padding: 0 7px; min-width: 20px; }
+.tabbar a.book { color: var(--pen); }
+@media (max-width: 1000px) { .tabbar { display: grid; } }
+
+.toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 999px; font-size: 0.875rem; z-index: 70; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div class="wrap">
+    <a class="brand" href="#top"><strong>닥터인사이트 상담 노트</strong><small>서울이도치과 · 마포·공덕역</small></a>
+    <nav class="links" aria-label="바로가기">
+      <a href="https://yidoinsight.com/knowledge/" target="_blank" rel="noopener">치아백과</a>
+      <a href="#clinic">진료시간</a>
+      <a class="cta" href="https://booking.naver.com/booking/13/bizes/1712749" target="_blank" rel="noopener">예약 ↗</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="intro">
+    <div class="wrap">
+      <h1>진료실에서 할 말,<br><mark>미리 적어 가세요.</mark></h1>
+      <p>긴장하면 물어보려던 것을 잊기 쉽습니다. 고민을 고르고 상태를 적고 물어볼 질문을 고르면, 진료 때 그대로 보여줄 수 있는 노트 한 장이 만들어집니다.</p>
+      <ol class="steps" aria-label="작성 순서">
+        <li><span class="mono">1</span>고민 고르기</li>
+        <li><span class="mono">2</span>내 상태 적기</li>
+        <li><span class="mono">3</span>물어볼 질문 고르기</li>
+      </ol>
+      <div class="example" id="example-banner">예시로 채워 둔 노트입니다. 내 상황으로 바꿔 적어 보세요. <button type="button" id="reset-top">처음부터 쓰기</button></div>
+    </div>
+  </section>
+
+  <section class="app">
+    <div class="wrap">
+      <div id="builder">
+        <!-- STEP 1 -->
+        <div class="card" id="step1">
+          <div class="card-head"><span class="mono">STEP 1</span><h2>어떤 고민이 있으세요?</h2><p>여러 개 골라도 됩니다</p></div>
+          <div class="topics" id="topics"></div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="card" id="step2">
+          <div class="card-head"><span class="mono">STEP 2</span><h2>지금 상태를 적어 주세요</h2><p>모르는 항목은 비워 두세요</p></div>
+          <div class="field">
+            <span class="label">불편한 부위 <small>거울을 볼 때가 아니라 내 몸 기준입니다</small></span>
+            <div class="mouth" id="mouth">
+              <span class="jaw"><span>오른쪽</span><span>윗니</span><span>왼쪽</span></span>
+            </div>
+          </div>
+          <div class="field">
+            <span class="label">언제부터 불편했나요?</span>
+            <div class="chips" id="since" data-single="true"></div>
+          </div>
+          <div class="field">
+            <span class="label">언제 불편한가요? <small>여러 개 선택</small></span>
+            <div class="chips" id="when"></div>
+          </div>
+          <div class="field">
+            <label class="label" for="pain">불편한 정도 <small><output id="pain-out" for="pain">4</output> / 10</small></label>
+            <div class="range">
+              <input type="range" id="pain" min="0" max="10" step="1" value="4">
+              <div class="scale"><span>0 불편 없음</span><span>5 신경 쓰임</span><span>10 참기 어려움</span></div>
+            </div>
+          </div>
+          <div class="field">
+            <span class="label">의료진이 알아야 할 것 <small>상담 때 말씀해 주세요</small></span>
+            <div class="chips" id="health"></div>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="card" id="step3">
+          <div class="card-head"><span class="mono">STEP 3</span><h2>물어볼 질문을 골라 주세요</h2><p>고른 순서대로 노트에 적힙니다</p></div>
+          <div id="questions"></div>
+          <form class="add" id="add-form">
+            <label class="sr" for="add-q">직접 질문 추가</label>
+            <input id="add-q" type="text" placeholder="직접 질문 적기 (예: 치료 중에 출장이 있어요)">
+            <button class="btn" type="submit">추가</button>
+          </form>
+        </div>
+
+        <!-- RELATED + CLINIC -->
+        <div class="card">
+          <div class="card-head"><span class="mono">READ</span><h2>상담 전에 읽어보면 좋은 글</h2></div>
+          <div class="related" id="related"></div>
+        </div>
+        <div class="card" id="clinic">
+          <div class="card-head"><span class="mono">VISIT</span><h2>서울이도치과 진료 안내</h2></div>
+          <div class="clinic">
+            <dl>
+              <dt>월 · 목</dt><dd>09:30 – 20:30</dd>
+              <dt>화 · 수 · 금</dt><dd>09:30 – 18:30</dd>
+              <dt>토</dt><dd>09:30 – 14:30</dd>
+              <dt>일 · 공휴일</dt><dd>휴진</dd>
+            </dl>
+            <div>
+              <div class="phone">02-706-2080</div>
+              <p>서울 마포구 만리재로 24, 2층<br>공덕역 5·6번 출구 도보 약 3분<br>평일 점심 12:30 – 14:00</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTE -->
+      <aside class="note-col" id="note-col" aria-label="내 상담 노트">
+        <article class="note" id="note"></article>
+        <div class="note-actions">
+          <button class="btn primary wide" type="button" id="copy">노트 내용 복사하기</button>
+          <a class="btn" href="https://booking.naver.com/booking/13/bizes/1712749" target="_blank" rel="noopener">네이버 예약 ↗</a>
+          <button class="btn" type="button" id="reset">처음부터 쓰기</button>
+        </div>
+        <p class="saved" id="saved">이 노트는 이 기기의 브라우저에만 저장됩니다.</p>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<nav class="tabbar" aria-label="하단 메뉴">
+  <a href="#step1">작성하기</a>
+  <a href="#note-col">내 노트 <b id="tab-count">0</b></a>
+  <a class="book" href="https://booking.naver.com/booking/13/bizes/1712749" target="_blank" rel="noopener">예약하기 ↗</a>
+</nav>
+
+<script>
+(() => {
+  const B = "https://yidoinsight.com";
+  const TOPICS = {
+    implant: { name: "임플란트", sub: "빠진 치아, 오래 비워 둔 자리", read: ["공덕 임플란트 상담 준비", "/guides/gongdeok-implant-consultation/"], q: [
+      "왜 임플란트를 권하시는지, 브리지·틀니와는 무엇이 다른가요?",
+      "견적에 골이식이나 보철물 비용이 포함되어 있나요?",
+      "전체 치료 기간과 내원 횟수는 어느 정도인가요?",
+      "제 나이와 상태로 건강보험 적용이 되나요?",
+      "치료가 끝난 뒤 관리와 정기검진은 어떻게 하나요?"] },
+    prosth: { name: "보철·크라운", sub: "씌우기, 깨진 치아, 모양과 색", read: ["보철 상담, 모양과 씹는 느낌", "/journal/restoration-consultation/"], q: [
+      "재료별 차이와 이 재료를 추천하시는 이유가 궁금해요.",
+      "색과 모양은 어떻게 정하나요? 미리 볼 수 있나요?",
+      "제작 기간 동안 임시치아를 쓰나요?",
+      "씹을 때 불편하면 나중에 조정할 수 있나요?"] },
+    ortho: { name: "교정", sub: "치열, 투명교정, 아이 교정", read: ["교정 상담 전 물어볼 것", "/journal/orthodontic-consultation/"], q: [
+      "지금 시작하기에 적절한 시기인가요?",
+      "브라켓 교정과 투명교정 중 저에게 맞는 방법은요?",
+      "치료 기간과 내원 주기는 어느 정도인가요?",
+      "교정이 끝난 뒤 유지장치는 얼마나 써야 하나요?"] },
+    gum: { name: "잇몸", sub: "출혈, 붓기, 치석, 입냄새", read: ["양치할 때 잇몸에서 피가 난다면", "/journal/gum-health/"], q: [
+      "잇몸에서 피가 나는 원인을 어떻게 확인하나요?",
+      "스케일링은 얼마나 자주 받으면 좋을까요?",
+      "집에서 양치와 치실은 어떻게 하면 좋을까요?",
+      "잇몸 치료가 더 필요한 상태인가요?"] },
+    pain: { name: "시림·통증", sub: "찬물에 시림, 씹을 때 아픔", read: ["시린이 · 치아백과", "/knowledge/tooth-sensitivity/"], q: [
+      "시린 원인이 충치인지, 잇몸인지, 다른 것인지 확인할 수 있나요?",
+      "당장 치료가 필요한 상태인가요, 지켜봐도 되나요?",
+      "집에서 시린 증상을 줄이는 방법이 있나요?"] },
+    first: { name: "첫 방문·검진", sub: "오랜만의 치과, 전체 점검", read: ["첫 방문, 무엇을 이야기할까요?", "/journal/first-visit/"], q: [
+      "전체적으로 먼저 치료해야 할 곳은 어디인가요?",
+      "치료 순서와 대략적인 기간을 알 수 있을까요?",
+      "오늘 검사 결과를 사진으로 함께 볼 수 있나요?"] }
+  };
+  const AREAS = [["r-up", "오른쪽 위", "1x"], ["f-up", "앞니 위", "11–21"], ["l-up", "왼쪽 위", "2x"], ["r-dn", "오른쪽 아래", "4x"], ["f-dn", "앞니 아래", "41–31"], ["l-dn", "왼쪽 아래", "3x"]];
+  const SINCE = ["며칠 전부터", "1–2주", "한 달 이상", "오래전부터"];
+  const WHEN = ["찬 것", "뜨거운 것", "단 것", "씹을 때", "양치할 때", "밤·아침에", "가만히 있어도"];
+  const HEALTH = ["복용 중인 약", "고혈압·당뇨", "임신 가능성", "치과가 무서워요", "해당 없음"];
+
+  const EXAMPLE = { topics: ["implant"], areas: ["l-dn"], since: "한 달 이상", when: ["씹을 때"], pain: 4, health: ["고혈압·당뇨"],
+    qs: ["implant:0", "implant:1", "implant:3"], custom: [], memo: "왼쪽 아래 어금니 빠진 지 1년쯤. 반대쪽으로만 씹는 중." };
+  const BLANK = { topics: [], areas: [], since: "", when: [], pain: 0, health: [], qs: [], custom: [], memo: "" };
+  const KEY = "yido-consult-note-v1";
+  let state, isExample = true;
+  try { const saved = JSON.parse(localStorage.getItem(KEY) || "null"); if (saved && saved.state) { state = saved.state; isExample = !!saved.example; } } catch (e) {}
+  if (!state) state = structuredClone(EXAMPLE);
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const toggle = (arr, v) => arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v];
+  let saveTimer;
+  function save() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify({ state, example: isExample })); $("saved").textContent = "자동 저장됨 · 이 기기의 브라우저에만 저장됩니다."; } catch (e) {} }, 300);
+  }
+  function touched() { if (isExample) { isExample = false; $("example-banner").hidden = true; } }
+
+  /* render builder */
+  function renderTopics() {
+    $("topics").innerHTML = Object.entries(TOPICS).map(([k, t]) => `<button type="button" class="topic" data-k="${k}" aria-pressed="${state.topics.includes(k)}"><strong>${t.name}</strong><span>${t.sub}</span></button>`).join("");
+  }
+  function renderMouth() {
+    const m = $("mouth");
+    m.querySelectorAll(".area, .jaw.dn").forEach(e => e.remove());
+    const html = AREAS.map(([k, n, code], i) => (i === 3 ? `` : ``) + `<button type="button" class="area ${k}" data-k="${k}" aria-pressed="${state.areas.includes(k)}">${n}<span class="mono">${code}</span></button>`);
+    m.insertAdjacentHTML("beforeend", html.slice(0, 3).join("") + html.slice(3).join("") + `<span class="jaw dn"><span>오른쪽</span><span>아랫니</span><span>왼쪽</span></span>`);
+  }
+  const chipRow = (id, items, isOn) => { $(id).innerHTML = items.map(v => `<button type="button" class="chip" data-v="${esc(v)}" aria-pressed="${isOn(v)}">${esc(v)}</button>`).join(""); };
+  function renderChips() {
+    chipRow("since", SINCE, v => state.since === v);
+    chipRow("when", WHEN, v => state.when.includes(v));
+    chipRow("health", HEALTH, v => state.health.includes(v));
+    $("pain").value = state.pain; $("pain-out").textContent = state.pain;
+  }
+  function renderQuestions() {
+    const keys = state.topics.length ? state.topics : [];
+    $("questions").innerHTML = keys.length ? keys.map(k => `
+      <div class="qgroup"><h3>${TOPICS[k].name}</h3>${TOPICS[k].q.map((q, i) => {
+        const id = `${k}:${i}`;
+        return `<label class="q"><input type="checkbox" data-id="${id}" ${state.qs.includes(id) ? "checked" : ""}><span>${esc(q)}</span></label>`;
+      }).join("")}</div>`).join("") + (state.custom.length ? `<div class="qgroup"><h3>직접 적은 질문</h3>${state.custom.map((q, i) => `<label class="q"><input type="checkbox" data-id="custom:${i}" ${state.qs.includes("custom:" + i) ? "checked" : ""}><span>${esc(q)}</span></label>`).join("")}</div>` : "")
+      : `<p class="empty-q">STEP 1에서 고민을 고르면 그에 맞는 질문이 나옵니다.</p>`;
+    $("related").innerHTML = (keys.length ? keys : ["first"]).map(k => `<a href="${B + TOPICS[k].read[1]}" target="_blank" rel="noopener">${TOPICS[k].read[0]} ↗<span>${TOPICS[k].name}</span></a>`).join("");
+  }
+  const qText = id => { const [k, i] = id.split(":"); return k === "custom" ? state.custom[+i] : TOPICS[k] && TOPICS[k].q[+i]; };
+
+  /* render note */
+  function today() {
+    try { return new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", weekday: "short" }).format(new Date()); } catch (e) { return new Date().toLocaleDateString(); }
+  }
+  function renderNote() {
+    const row = (k, v) => `<div class="note-row"><span class="k">${k}</span><span class="v ${v ? "" : "blank"}">${v || "—"}</span></div>`;
+    const areas = state.areas.map(a => AREAS.find(x => x[0] === a)[1]).join(", ");
+    const pain = `<span class="pain-bar" aria-hidden="true">${Array.from({ length: 10 }, (_, i) => `<i class="${i < state.pain ? "on" : ""}"></i>`).join("")}</span>${state.pain} / 10`;
+    const qs = state.qs.map(qText).filter(Boolean);
+    $("note").innerHTML = `
+      <div class="note-top">
+        <div class="row"><h2>상담 노트</h2><span class="mono">${today()}</span></div>
+        <small>서울이도치과 · 진료 때 이 화면을 보여주세요</small>
+      </div>
+      <div class="note-body">
+        ${row("상담 주제", state.topics.map(k => `<mark>${TOPICS[k].name}</mark>`).join(" · "))}
+        ${row("부위", esc(areas))}
+        ${row("시작", esc(state.since))}
+        ${row("불편할 때", esc(state.when.join(", ")))}
+        ${row("정도", state.pain ? pain : "")}
+        ${row("알릴 것", esc(state.health.join(", ")))}
+        <div class="note-row"><span class="k">물어볼 것</span><span class="v ${qs.length ? "" : "blank"}">${qs.length ? `<ol class="note-q">${qs.map(q => `<li><span>${esc(q)}</span></li>`).join("")}</ol>` : "—"}</span></div>
+        <div class="note-row"><label class="k" for="memo">메모</label><textarea class="note-memo" id="memo" rows="3" placeholder="여기에 자유롭게 적어 두세요">${esc(state.memo)}</textarea></div>
+      </div>
+      <div class="note-foot">이 노트는 상담 준비용 메모이며 진단을 대신하지 않습니다.</div>`;
+    $("tab-count").textContent = qs.length;
+  }
+  function renderAll() { renderTopics(); renderMouth(); renderChips(); renderQuestions(); renderNote(); }
+
+  /* events */
+  document.addEventListener("click", e => {
+    const t = e.target.closest(".topic");
+    if (t) { touched(); state.topics = toggle(state.topics, t.dataset.k); state.qs = state.qs.filter(id => id.startsWith("custom:") || state.topics.includes(id.split(":")[0])); renderTopics(); renderQuestions(); renderNote(); save(); return; }
+    const a = e.target.closest(".area");
+    if (a) { touched(); state.areas = toggle(state.areas, a.dataset.k); a.setAttribute("aria-pressed", state.areas.includes(a.dataset.k)); renderNote(); save(); return; }
+    const c = e.target.closest(".chip");
+    if (c) {
+      touched();
+      const group = c.parentElement.id, v = c.dataset.v;
+      if (group === "since") state.since = state.since === v ? "" : v;
+      if (group === "when") state.when = toggle(state.when, v);
+      if (group === "health") state.health = v === "해당 없음" ? (state.health.includes(v) ? [] : [v]) : toggle(state.health.filter(x => x !== "해당 없음"), v);
+      renderChips(); renderNote(); save();
+    }
+  });
+  $("questions").addEventListener("change", e => {
+    const id = e.target.dataset.id; if (!id) return;
+    touched(); state.qs = e.target.checked ? [...state.qs, id] : state.qs.filter(x => x !== id); renderNote(); save();
+  });
+  $("pain").addEventListener("input", e => { touched(); state.pain = +e.target.value; $("pain-out").textContent = state.pain; renderNote(); save(); });
+  $("add-form").addEventListener("submit", e => {
+    e.preventDefault(); const v = $("add-q").value.trim(); if (!v) return;
+    touched(); state.custom.push(v); state.qs.push("custom:" + (state.custom.length - 1)); $("add-q").value = ""; renderQuestions(); renderNote(); save();
+  });
+  $("note").addEventListener("input", e => { if (e.target.id === "memo") { touched(); state.memo = e.target.value; save(); } });
+
+  const toast = msg => { const el = document.createElement("div"); el.className = "toast"; el.textContent = msg; document.body.appendChild(el); setTimeout(() => el.remove(), 1800); };
+  function asText() {
+    const areas = state.areas.map(a => AREAS.find(x => x[0] === a)[1]).join(", ");
+    const lines = [`[상담 노트] ${today()} · 서울이도치과`, `상담 주제: ${state.topics.map(k => TOPICS[k].name).join(", ") || "-"}`, `부위: ${areas || "-"}`, `시작: ${state.since || "-"}`, `불편할 때: ${state.when.join(", ") || "-"}`, `정도: ${state.pain}/10`, `알릴 것: ${state.health.join(", ") || "-"}`, `물어볼 것:`];
+    state.qs.map(qText).filter(Boolean).forEach((q, i) => lines.push(`  Q${i + 1}. ${q}`));
+    if (state.memo) lines.push(`메모: ${state.memo}`);
+    return lines.join("\n");
+  }
+  $("copy").addEventListener("click", () => {
+    const text = asText();
+    const ok = () => toast("복사했습니다. 네이버 예약 요청사항에 붙여넣을 수 있어요");
+    const fail = () => { const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); ok(); } catch (e) { toast("복사하지 못했습니다. 노트를 직접 선택해 복사해 주세요"); } ta.remove(); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, fail); else fail();
+  });
+  const reset = () => { state = structuredClone(BLANK); isExample = false; $("example-banner").hidden = true; renderAll(); save(); toast("빈 노트로 시작합니다"); };
+  $("reset").addEventListener("click", reset); $("reset-top").addEventListener("click", reset);
+
+  if (!isExample) $("example-banner").hidden = true;
+  renderAll();
+})();
+</script>
+</body>
+</html>

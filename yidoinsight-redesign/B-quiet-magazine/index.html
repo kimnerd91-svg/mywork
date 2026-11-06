@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>닥터인사이트 Magazine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400;1,6..72,500&family=Noto+Sans+KR:wght@300;400;500&display=swap">
+<style>
+/* Layout concept: 계간지 한 권 — 표지(커버스토리) → 목차 → 피처(원장 칼럼) → 용어 사전 펼침면 → 인물 → 방문 → 판권면(편집 원칙) */
+:root {
+  --paper: #F7F6F2;
+  --band: #ECE9E1;
+  --ink: #1B1A17;
+  --muted: #6A665E;
+  --line: #DCD8CF;
+  --accent: #3D5A45;       /* 모스 그린: 표식·링크에만 */
+  --accent-soft: #DCE5DD;
+  --on-accent: #F7F6F2;
+  --font-display: "Gowun Batang", "Nanum Myeongjo", "AppleMyungjo", serif;
+  --font-latin: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --wrap: 1280px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --paper: #151513; --band: #1E1D1A; --ink: #ECE9E2; --muted: #A29D93; --line: #33312C; --accent: #9CC0A6; --accent-soft: #24332A; --on-accent: #151513; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --paper: #151513; --band: #1E1D1A; --ink: #ECE9E2; --muted: #A29D93; --line: #33312C; --accent: #9CC0A6; --accent-soft: #24332A; --on-accent: #151513; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+body { margin: 0; overflow-x: clip; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-weight: 400; font-size: 1rem; line-height: 1.75; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--paper); }
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+h1, h2, h3, h4 { margin: 0; font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; text-wrap: balance; }
+p { margin: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.wrap { max-width: var(--wrap); margin-inline: auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 760px) { .wrap { padding-left: max(48px, env(safe-area-inset-left, 0px)); padding-right: max(48px, env(safe-area-inset-right, 0px)); } }
+.latin { font-family: var(--font-latin); font-style: italic; font-weight: 400; letter-spacing: 0; }
+.kicker { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+.more { text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 2px; font-size: 0.9375rem; }
+.more:hover { color: var(--accent); }
+
+/* masthead */
+.masthead .wrap { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 16px; padding-block: 28px 18px; border-bottom: 1px solid var(--ink); }
+.masthead .issue { font-size: 0.75rem; letter-spacing: 0.08em; color: var(--muted); }
+.masthead .logo { text-align: center; text-decoration: none; }
+.masthead .logo .latin { display: block; font-size: clamp(2rem, 1.2rem + 3vw, 3.5rem); line-height: 1; letter-spacing: -0.02em; }
+.masthead .logo small { display: block; margin-top: 6px; font-size: 0.75rem; letter-spacing: 0.2em; color: var(--muted); }
+.masthead .tools { justify-self: end; display: flex; gap: 14px; font-size: 0.8125rem; align-items: center; }
+.masthead .tools a { text-decoration: none; color: var(--muted); }
+.masthead .tools a.book { color: var(--ink); border: 1px solid var(--ink); padding: 6px 12px; }
+.masthead .tools a.book:hover { background: var(--ink); color: var(--paper); }
+@media (max-width: 760px) { .masthead .wrap { grid-template-columns: minmax(0, 1fr) auto; } .masthead .logo .latin { font-size: 1.875rem; } .masthead .issue { display: none; } .masthead .logo { text-align: left; } .masthead .tools .lang { display: none; } }
+
+.sections { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: var(--paper); border-bottom: 1px solid var(--line); }
+.sections .wrap { display: flex; gap: 28px; overflow-x: auto; scrollbar-width: none; }
+.sections a { text-decoration: none; font-size: 0.875rem; padding-block: 12px; white-space: nowrap; color: var(--muted); }
+.sections a:hover { color: var(--ink); }
+.sections a .latin { margin-right: 6px; color: var(--accent); }
+
+/* cover */
+.cover .wrap { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 56px; padding-block: 48px 72px; align-items: end; }
+@media (max-width: 900px) { .cover .wrap { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-block: 28px 56px; } }
+.cover figure { margin: 0; }
+.cover figure img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+.cover figcaption { margin-top: 10px; font-size: 0.8125rem; color: var(--muted); display: flex; justify-content: space-between; gap: 12px; }
+.cover h1 { font-size: clamp(2.25rem, 1.4rem + 3.4vw, 4.25rem); font-weight: 400; line-height: 1.22; margin-block: 18px 22px; animation: rise .9s cubic-bezier(.2, .7, .2, 1) both; }
+.cover .dek { color: var(--muted); font-size: 1.0625rem; max-width: 30em; }
+.inthis { margin-top: 36px; border-top: 1px solid var(--ink); }
+.inthis a { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; padding-block: 14px; border-bottom: 1px solid var(--line); text-decoration: none; }
+.inthis a:hover h3 { color: var(--accent); }
+.inthis .latin { font-size: 1.375rem; color: var(--accent); line-height: 1.2; }
+.inthis h3 { font-size: 1.0625rem; font-weight: 400; }
+.inthis small { display: block; font-size: 0.8125rem; color: var(--muted); }
+@keyframes rise { from { opacity: 0.001; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* section head */
+.sec { padding-block: 96px; }
+@media (max-width: 760px) { .sec { padding-block: 64px; } }
+.sec-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: end; margin-bottom: 48px; }
+.sec-head h2 { font-size: clamp(1.875rem, 1.3rem + 2vw, 3rem); font-weight: 400; margin-top: 10px; }
+.sec-head p { color: var(--muted); max-width: 32em; justify-self: end; }
+@media (max-width: 760px) { .sec-head { grid-template-columns: minmax(0, 1fr); gap: 14px; } .sec-head p { justify-self: start; } }
+
+/* contents */
+.contents { background: var(--band); }
+.toc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 56px; border-top: 1px solid var(--ink); }
+@media (max-width: 760px) { .toc { grid-template-columns: minmax(0, 1fr); } }
+.toc a { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 16px; align-items: baseline; padding-block: 20px; border-bottom: 1px solid var(--line); text-decoration: none; }
+.toc a:hover .t { color: var(--accent); }
+.toc .n { font-family: var(--font-latin); font-style: italic; font-size: 1.75rem; line-height: 1; color: var(--accent); }
+.toc .t { font-family: var(--font-display); font-size: 1.1875rem; line-height: 1.45; display: block; }
+.toc .by { font-size: 0.8125rem; color: var(--muted); display: block; margin-top: 4px; }
+.toc .cat { font-size: 0.6875rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+
+/* feature */
+.feature { display: grid; gap: 88px; }
+.story { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: center; }
+.story:nth-child(even) { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+.story:nth-child(even) .story-img { order: 2; }
+@media (max-width: 860px) { .story, .story:nth-child(even) { grid-template-columns: minmax(0, 1fr); gap: 24px; } .story:nth-child(even) .story-img { order: 0; } }
+.story-img img { width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; max-height: 560px; }
+.story-body { display: grid; gap: 20px; max-width: 34em; }
+.story blockquote { margin: 0; font-family: var(--font-display); font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2.25rem); line-height: 1.45; text-wrap: balance; }
+.story blockquote::before { content: "“"; font-family: var(--font-latin); color: var(--accent); margin-right: 4px; }
+.story blockquote::after { content: "”"; font-family: var(--font-latin); color: var(--accent); margin-left: 2px; }
+.story .byline { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; font-size: 0.9375rem; }
+.story .byline strong { font-family: var(--font-display); font-size: 1.125rem; }
+.story .byline span { color: var(--muted); font-size: 0.8125rem; }
+.story p { color: var(--muted); }
+.note-edit { font-size: 0.8125rem; color: var(--muted); border-left: 2px solid var(--accent); padding-left: 12px; }
+
+/* glossary spread */
+.glossary { background: var(--band); }
+.spread { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 64px; }
+@media (max-width: 960px) { .spread { grid-template-columns: minmax(0, 1fr); gap: 40px; } }
+.spread-intro h2 { font-size: clamp(2rem, 1.3rem + 2.6vw, 3.5rem); font-weight: 400; line-height: 1.25; margin-block: 12px 20px; }
+.spread-intro p { color: var(--muted); }
+.find { margin-top: 28px; display: grid; gap: 8px; }
+.find label { font-size: 0.8125rem; color: var(--muted); }
+.find input { font: inherit; font-family: var(--font-display); font-size: 1.25rem; border: 0; border-bottom: 1px solid var(--ink); background: transparent; padding: 8px 0; color: var(--ink); outline: 0; width: 100%; }
+.find input:focus { border-bottom-color: var(--accent); }
+.find .count { font-size: 0.8125rem; color: var(--muted); }
+.entry-points { margin-top: 32px; display: grid; gap: 0; border-top: 1px solid var(--ink); }
+.entry-points a { padding-block: 16px; border-bottom: 1px solid var(--line); text-decoration: none; display: flex; justify-content: space-between; gap: 12px; }
+.entry-points a strong { font-family: var(--font-display); font-weight: 700; font-size: 1.125rem; }
+.entry-points a span { color: var(--muted); font-size: 0.875rem; }
+.dict { columns: 2; column-gap: 48px; }
+@media (max-width: 640px) { .dict { columns: 1; } }
+.dict-group { break-inside: avoid; margin-bottom: 28px; }
+.dict-group h3 { font-family: var(--font-display); font-size: 2.25rem; font-weight: 400; color: var(--accent); line-height: 1; padding-bottom: 8px; border-bottom: 1px solid var(--ink); margin-bottom: 4px; }
+.dict-entry { display: block; padding-block: 12px; border-bottom: 1px solid var(--line); text-decoration: none; }
+.dict-entry strong { font-family: var(--font-display); font-size: 1.125rem; }
+.dict-entry small { margin-left: 8px; font-size: 0.75rem; color: var(--muted); }
+.dict-entry span { display: block; color: var(--muted); font-size: 0.9375rem; line-height: 1.6; margin-top: 2px; }
+.dict-entry:hover strong { color: var(--accent); }
+.dict-empty { color: var(--muted); }
+
+/* people */
+.people { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px 24px; }
+@media (max-width: 960px) { .people { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.person { display: grid; gap: 10px; align-content: start; }
+.person .ph { aspect-ratio: 4 / 5; max-width: 100%; overflow: hidden; background: var(--band); }
+.person .ph img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.85); }
+.person .ph.empty { display: grid; place-items: center; font-family: var(--font-display); font-size: 3.5rem; color: var(--muted); border: 1px solid var(--line); }
+.person h3 { font-size: 1.375rem; font-weight: 700; margin-top: 6px; }
+.person .role { font-size: 0.875rem; color: var(--muted); }
+.person .role b { font-weight: 500; color: var(--accent); }
+.person .fields { font-size: 0.875rem; }
+
+/* visit + faq */
+.visit { border-top: 1px solid var(--ink); }
+.visit-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 72px; }
+@media (max-width: 900px) { .visit-grid { grid-template-columns: minmax(0, 1fr); gap: 56px; } }
+.visit-card h2 { font-size: clamp(1.75rem, 1.3rem + 1.6vw, 2.5rem); font-weight: 400; margin-block: 10px 24px; }
+.visit-card table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.visit-card th, .visit-card td { text-align: left; padding: 12px 0; border-bottom: 1px solid var(--line); font-weight: 400; }
+.visit-card td { text-align: right; font-family: var(--font-latin); font-size: 1.0625rem; }
+.visit-card tr.night th::after { content: "야간진료"; margin-left: 8px; font-size: 0.6875rem; color: var(--accent); border: 1px solid var(--accent); padding: 0 6px; vertical-align: 2px; }
+.visit-card .meta { margin-top: 16px; font-size: 0.875rem; color: var(--muted); display: grid; gap: 4px; }
+.visit-card address { font-style: normal; margin-top: 28px; font-family: var(--font-display); font-size: 1.25rem; line-height: 1.5; }
+.visit-card .phone { font-family: var(--font-latin); font-size: 2rem; margin-top: 8px; user-select: all; }
+.visit-card .actions { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; min-height: 46px; padding: 0 20px; border: 1px solid var(--ink); text-decoration: none; font-size: 0.9375rem; }
+.btn.solid { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.faq h2 { font-size: 1.5rem; font-weight: 400; margin-block: 10px 20px; }
+.faq details { border-top: 1px solid var(--line); }
+.faq details:last-child { border-bottom: 1px solid var(--line); }
+.faq summary { list-style: none; cursor: pointer; padding-block: 18px; display: flex; justify-content: space-between; gap: 16px; font-family: var(--font-display); font-size: 1.125rem; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font-family: var(--font-latin); color: var(--accent); font-size: 1.375rem; line-height: 1; transition: transform .2s; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq .a { padding-bottom: 20px; color: var(--muted); display: grid; gap: 10px; max-width: 40em; }
+.faq .a a { justify-self: start; color: var(--ink); }
+
+/* colophon */
+.colophon { background: var(--ink); color: var(--paper); }
+.colophon .wrap { padding-block: 72px 48px; display: grid; gap: 56px; }
+.colo-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 48px; }
+@media (max-width: 860px) { .colo-grid { grid-template-columns: minmax(0, 1fr); gap: 36px; } }
+.colophon .latin.big { font-size: 2.5rem; line-height: 1; }
+.colophon p, .colophon li, .colophon dd { color: color-mix(in srgb, var(--paper) 72%, transparent); font-size: 0.9375rem; }
+.colophon h4 { font-family: var(--font-body); font-weight: 500; font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 14px; color: color-mix(in srgb, var(--paper) 55%, transparent); }
+.colophon dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 20px; }
+.colophon dt { font-size: 0.875rem; }
+.colophon dd { margin: 0; }
+.colophon ol { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; }
+.colophon ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.colophon a { text-decoration: none; }
+.colophon a:hover { text-decoration: underline; }
+.colo-bottom { border-top: 1px solid color-mix(in srgb, var(--paper) 22%, transparent); padding-top: 20px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 0.8125rem; color: color-mix(in srgb, var(--paper) 55%, transparent); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <span class="issue">VOL. 07 · 2026 AUTUMN<br>서울이도치과 계간 진료 이야기</span>
+    <a class="logo" href="#top"><span class="latin">Doctor Insight</span><small>서울이도치과 닥터인사이트</small></a>
+    <div class="tools">
+      <a class="lang" href="https://yidoinsight.com/en/">EN</a>
+      <a class="lang" href="https://yidoinsight.com/ja/">JA</a>
+      <a class="book" href="https://booking.naver.com/booking/13/bizes/1712749" target="_blank" rel="noopener">예약 ↗</a>
+    </div>
+  </div>
+</header>
+<nav class="sections" aria-label="섹션">
+  <div class="wrap">
+    <a href="#contents"><span class="latin">i.</span>이번 호</a>
+    <a href="#feature"><span class="latin">ii.</span>원장 칼럼</a>
+    <a href="#glossary"><span class="latin">iii.</span>치아 사전</a>
+    <a href="#people"><span class="latin">iv.</span>의료진</a>
+    <a href="#visit"><span class="latin">v.</span>방문 안내</a>
+  </div>
+</nav>
+
+<main id="top">
+  <!-- COVER -->
+  <section class="cover" aria-labelledby="cover-title">
+    <div class="wrap">
+      <figure>
+        <img src="../assets/care-team.jpg" alt="서울이도치과 진료실 앞에 선 의료진" width="1600" height="1067">
+        <figcaption><span>공덕 진료실에서, 서울이도치과 의료진</span><span class="latin">Cover</span></figcaption>
+      </figure>
+      <div>
+        <span class="kicker">Cover Story · 마포·공덕역 서울이도치과</span>
+        <h1 id="cover-title">치료보다 먼저,<br>이해할 수 있도록.</h1>
+        <p class="dek">치과에서 미처 묻지 못했던 질문과, 집에 돌아와 다시 궁금해진 이야기를 모았습니다. 읽고 나서 상담할 질문을 준비해 보세요.</p>
+        <nav class="inthis" aria-label="이번 호 주요 글">
+          <a href="#feature"><span class="latin">01</span><span><h3>치료를 결정하기 전, 제가 먼저 생각하는 것</h3><small>고성민 대표원장 진료분야 · 편집 칼럼</small></span></a>
+          <a href="#glossary"><span class="latin">04</span><span><h3>이해하면, 질문이 달라집니다 · 치아 사전 20</h3><small>치료 이름과 증상으로 찾는 용어 풀이</small></span></a>
+          <a href="#visit"><span class="latin">08</span><span><h3>첫 방문, 무엇을 이야기할까요?</h3><small>상담 준비 노트</small></span></a>
+        </nav>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENTS -->
+  <section class="sec contents" id="contents" aria-labelledby="contents-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="kicker">Contents</span><h2 id="contents-title">이번 호에 실린 글</h2></div>
+        <p>원장 칼럼 세 편과 상담 준비 노트 다섯 편입니다. 치료를 결정하기 전에 읽어보세요.</p>
+      </div>
+      <div class="toc" id="toc"></div>
+    </div>
+  </section>
+
+  <!-- FEATURE -->
+  <section class="sec" id="feature" aria-labelledby="feature-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="kicker">Feature · Our care, your story</span><h2 id="feature-title">한 가지 치료보다,<br>한 사람의 상황을 먼저 봅니다.</h2></div>
+        <p>치아의 상태뿐 아니라 불편했던 시간, 치료에 대한 걱정, 앞으로의 생활까지 충분히 듣는 것에서 진료가 시작됩니다.</p>
+      </div>
+      <div class="feature">
+        <article class="story">
+          <div class="story-img"><img src="../assets/doctor-ko-sungmin.jpg" alt="고성민 대표원장" width="480" height="600" loading="lazy"></div>
+          <div class="story-body">
+            <span class="kicker">01 · 진료를 바라보는 마음</span>
+            <blockquote>치료를 결정하기 전, 제가 먼저 생각하는 것</blockquote>
+            <p>치료의 필요성과 환자의 건강·생활을 함께 살피는 관점을 정리한 편집 칼럼입니다.</p>
+            <div class="byline"><strong>고성민</strong><span>대표원장 · 임플란트 수술, 진정치료, 턱관절·구강외과</span></div>
+            <a class="more" href="https://yidoinsight.com/columns/attention-to-one-patient/" target="_blank" rel="noopener">칼럼 읽기 ↗</a>
+          </div>
+        </article>
+        <article class="story">
+          <div class="story-img"><img src="../assets/doctor-park-jihyun.jpg" alt="박지현 대표원장" width="480" height="600" loading="lazy"></div>
+          <div class="story-body">
+            <span class="kicker">02 · 편안하게 씹는다는 것</span>
+            <blockquote>보철의 완성은, 다시 편하게 씹는 데 있습니다</blockquote>
+            <p>치아 모양뿐 아니라 잇몸과 맞물림, 일상에서의 사용까지 살펴보는 편집 칼럼입니다.</p>
+            <div class="byline"><strong>박지현</strong><span>대표원장 · 치과보철과 전문의</span></div>
+            <a class="more" href="https://yidoinsight.com/columns/form-and-function/" target="_blank" rel="noopener">칼럼 읽기 ↗</a>
+          </div>
+        </article>
+        <article class="story">
+          <div class="story-img"><img src="../assets/doctor-won-soyun.jpg" alt="원소윤 수석원장" width="480" height="600" loading="lazy"></div>
+          <div class="story-body">
+            <span class="kicker">03 · 자연스러운 미소</span>
+            <blockquote>자연스러운 미소를 위해, 덜 바꾸는 방법부터 생각합니다</blockquote>
+            <p>환자에게 어울리는 부분을 남기고 필요한 변화를 구분하는 심미치료의 기준.</p>
+            <div class="byline"><strong>원소윤</strong><span>수석원장 · 심미보철, 라미네이트, 레진 수복</span></div>
+            <a class="more" href="https://yidoinsight.com/columns/care-in-the-details/" target="_blank" rel="noopener">칼럼 읽기 ↗</a>
+          </div>
+        </article>
+        <p class="note-edit">이 칼럼들은 병원의 브랜드 자료와 진료분야를 바탕으로 편집부가 구성한 글입니다. 실제 영상 발언과 편집된 설명은 각 글에서 구분해 표시합니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- GLOSSARY -->
+  <section class="sec glossary" id="glossary" aria-labelledby="glossary-title">
+    <div class="wrap spread">
+      <div class="spread-intro">
+        <span class="kicker">Seoul Yido Dental Encyclopedia</span>
+        <h2 id="glossary-title">이해하면,<br>질문이 달라집니다.</h2>
+        <p>치료 이름을 이미 알고 있다면 사전에서, 무엇이 불편한지만 알고 있다면 증상 찾기에서 시작하세요.</p>
+        <div class="find">
+          <label for="gq">사전에서 찾기</label>
+          <input id="gq" type="search" placeholder="예: 시린이, 크라운, 잇몸" autocomplete="off">
+          <span class="count" id="gcount" aria-live="polite"></span>
+        </div>
+        <div class="entry-points">
+          <a href="https://yidoinsight.com/symptoms/" target="_blank" rel="noopener"><strong>증상으로 찾기 ↗</strong><span>찬물에 시림, 잇몸 출혈, 턱 소리</span></a>
+          <a href="https://yidoinsight.com/knowledge/" target="_blank" rel="noopener"><strong>치아백과 전체 ↗</strong><span>용어 20항목</span></a>
+        </div>
+      </div>
+      <div class="dict" id="dict"></div>
+    </div>
+  </section>
+
+  <!-- PEOPLE -->
+  <section class="sec" id="people" aria-labelledby="people-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="kicker">Meet the doctors</span><h2 id="people-title">서울이도치과 의료진</h2></div>
+        <p>전문의 자격과 관심 진료분야를 나누어 안내합니다. 자세한 약력은 의료진 소개에서 확인하세요.</p>
+      </div>
+      <div class="people">
+        <article class="person"><div class="ph"><img src="../assets/doctor-ko-sungmin.jpg" alt="고성민 대표원장" width="480" height="600" loading="lazy"></div><h3>고성민</h3><span class="role">대표원장</span><span class="fields">임플란트 수술 · 진정치료 · 턱관절·구강외과</span></article>
+        <article class="person"><div class="ph"><img src="../assets/doctor-park-jihyun.jpg" alt="박지현 대표원장" width="480" height="600" loading="lazy"></div><h3>박지현</h3><span class="role">대표원장 · <b>치과보철과 전문의</b></span><span class="fields">심미보철 · 임플란트 보철 · 전악수복</span></article>
+        <article class="person"><div class="ph"><img src="../assets/doctor-won-soyun.jpg" alt="원소윤 수석원장" width="480" height="600" loading="lazy"></div><h3>원소윤</h3><span class="role">수석원장</span><span class="fields">심미보철 · 라미네이트 비니어 · 레진 수복</span></article>
+        <article class="person"><div class="ph empty" aria-hidden="true">한</div><h3>한이연</h3><span class="role">교정원장 · <b>치과교정과 전문의</b></span><span class="fields">브라켓 교정 · 투명교정 · 성장기교정</span></article>
+      </div>
+      <p style="margin-top:32px"><a class="more" href="https://yidoinsight.com/doctors/" target="_blank" rel="noopener">의료진 소개 전체 보기 ↗</a></p>
+    </div>
+  </section>
+
+  <!-- VISIT + FAQ -->
+  <section class="sec visit" id="visit" aria-labelledby="visit-title">
+    <div class="wrap visit-grid">
+      <div class="visit-card">
+        <span class="kicker">Visit Seoul Yido</span>
+        <h2 id="visit-title">내 치아 상태가 궁금하다면.</h2>
+        <table aria-label="진료시간">
+          <tr class="night"><th scope="row">월 · 목</th><td>09:30 – 20:30</td></tr>
+          <tr><th scope="row">화 · 수 · 금</th><td>09:30 – 18:30</td></tr>
+          <tr><th scope="row">토요일</th><td>09:30 – 14:30</td></tr>
+          <tr><th scope="row">일요일 · 공휴일</th><td>휴진</td></tr>
+        </table>
+        <div class="meta"><span>평일 점심 12:30 – 14:00 · 토요일은 점심시간 없이 진료</span><span>신공덕 아이파크 지하주차장 2시간 무료</span></div>
+        <address>서울 마포구 만리재로 24, 2층<br>공덕역 5·6번 출구 도보 약 3분</address>
+        <div class="phone">02-706-2080</div>
+        <div class="actions">
+          <a class="btn solid" href="https://booking.naver.com/booking/13/bizes/1712749" target="_blank" rel="noopener">네이버 예약 ↗</a>
+          <a class="btn" href="https://yidoinsight.com/visit/" target="_blank" rel="noopener">오시는 길 ↗</a>
+        </div>
+      </div>
+      <div class="faq">
+        <span class="kicker">Questions</span>
+        <h2>이런 질문에서 시작해 보세요</h2>
+        <div id="faq"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="colophon">
+  <div class="wrap">
+    <div class="colo-grid">
+      <div>
+        <span class="latin big">Doctor Insight</span>
+        <p style="margin-top:16px">치과에서 궁금했던 이야기를, 알기 쉽게.<br>이 사이트의 의료정보는 일반적인 안내이며 개인의 진단과 치료를 대신하지 않습니다.</p>
+      </div>
+      <div>
+        <h4>판권</h4>
+        <dl>
+          <dt>발행</dt><dd>서울이도치과의원</dd>
+          <dt>편집</dt><dd>닥터인사이트 편집부</dd>
+          <dt>감수</dt><dd>각 글의 의료진 표기 참고</dd>
+          <dt>확인</dt><dd>2026.11.04 공식 홈페이지 기준</dd>
+        </dl>
+      </div>
+      <div>
+        <h4>편집 원칙</h4>
+        <ol>
+          <li>어려운 용어는 풀어 쓰고, 사람마다 달라지는 부분을 함께 적습니다.</li>
+          <li>정책·공공정보는 참고한 기관과 확인 시점을 기록합니다.</li>
+          <li>진료정보와 제도가 바뀌면 다시 살펴보고 고칩니다.</li>
+        </ol>
+      </div>
+    </div>
+    <ul>
+      <li><a href="https://yidoinsight.com/sources/">참고자료</a></li>
+      <li><a href="https://yidoinsight.com/editorial-policy/">콘텐츠 안내</a></li>
+      <li><a href="https://yidoinsight.com/privacy/">개인정보처리방침</a></li>
+      <li><a href="https://yidoinsight.com/visit/#from-gongdeok">공덕동에서 오시는 길</a></li>
+      <li><a href="https://yidoinsight.com/visit/#from-dohwa">도화동에서 오시는 길</a></li>
+      <li><a href="https://yidoinsight.com/visit/#from-ahyeon">아현동에서 오시는 길</a></li>
+      <li><a href="https://seoulyido.com/">병원 공식 홈페이지 ↗</a></li>
+    </ul>
+    <div class="colo-bottom"><span>서울특별시 마포구 만리재로 24, 2층 · 02-706-2080</span><span>© SEOUL YIDO DENTAL OFFICE · DOCTORINSIGHT</span></div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const B = "https://yidoinsight.com";
+  const TOC = [
+    ["Column", "치료를 결정하기 전, 제가 먼저 생각하는 것", "고성민 원장 진료분야 · 편집 칼럼", "/columns/attention-to-one-patient/"],
+    ["Column", "보철의 완성은, 다시 편하게 씹는 데 있습니다", "박지현 원장 진료분야 · 편집 칼럼", "/columns/form-and-function/"],
+    ["Column", "자연스러운 미소를 위해, 덜 바꾸는 방법부터 생각합니다", "원소윤 원장 진료분야 · 편집 칼럼", "/columns/care-in-the-details/"],
+    ["Implant", "공덕 임플란트 상담 준비", "치료를 제안한 이유와 견적의 범위를 같은 기준으로", "/guides/gongdeok-implant-consultation/"],
+    ["Restoration", "보철 상담, 모양과 씹는 느낌", "원하는 모습과 씹을 때의 불편을 나누어", "/journal/restoration-consultation/"],
+    ["Orthodontics", "교정 상담 전 물어볼 것", "어떤 질문부터 하면 좋을까요", "/journal/orthodontic-consultation/"],
+    ["Gum care", "양치할 때 잇몸에서 피가 난다면", "일상에서 느낀 불편함을 정리하기", "/journal/gum-health/"],
+    ["First visit", "첫 방문, 무엇을 이야기할까요?", "불편한 점과 궁금한 내용을 정리해 가져가세요", "/journal/first-visit/"]
+  ];
+  document.getElementById("toc").innerHTML = TOC.map((t, i) => `
+    <a href="${B + t[3]}" target="_blank" rel="noopener">
+      <span class="n">${String(i + 1).padStart(2, "0")}</span>
+      <span><span class="t">${t[1]}</span><span class="by">${t[2]}</span></span>
+      <span class="cat">${t[0]}</span>
+    </a>`).join("");
+
+  const TERMS = [
+    ["골이식", "임플란트·발치", "bone-grafting", "임플란트 등을 계획할 때 부족한 치조골을 보완하기 위해 고려하는 술식입니다."],
+    ["교정 유지장치", "교정·성장", "orthodontic-retainers", "교정치료 후 치아가 이동한 위치에 적응하도록 돕는 장치입니다."],
+    ["교합", "검사·진단", "occlusion", "입을 다물거나 씹을 때 위아래 치아가 만나는 관계입니다."],
+    ["근관치료", "보존·신경치료", "root-canal-treatment", "감염되거나 손상된 치수 조직을 제거하고 내부를 세척·충전하는 치료입니다."],
+    ["복합레진", "보존·신경치료", "composite-resin", "치아색 재료를 접착해 작은 결손이나 충치 부위를 수복하는 방법입니다."],
+    ["사랑니", "임플란트·발치", "wisdom-tooth", "가장 뒤쪽에서 나오는 세 번째 큰어금니입니다."],
+    ["성장기교정", "교정·성장", "growth-orthodontics", "성장 중인 어린이의 치열과 턱 성장을 살펴 시기와 방법을 정하는 교정 진료입니다."],
+    ["스케일링", "잇몸·예방", "scaling", "칫솔질로 제거하기 어려운 치석과 침착물을 기구로 제거하는 처치입니다."],
+    ["시린이", "증상·통증", "tooth-sensitivity", "찬물, 바람, 양치 자극에 짧고 날카로운 통증이 느껴지는 상태입니다."],
+    ["이갈이·이악물기", "턱관절·구강외과", "bruxism", "잠을 자거나 깨어 있을 때 이를 갈거나 강하게 무는 반복 행동입니다."],
+    ["인레이·온레이", "보철·수복", "inlay-onlay", "치아 일부를 본떠 제작한 수복물을 붙여 결손 부위를 보완합니다."],
+    ["치과 브리지", "보철·수복", "dental-bridge", "빠진 치아 양옆을 지지대로 결손 부위를 연결하는 고정성 보철입니다."],
+    ["치과 크라운", "보철·수복", "dental-crown", "남아 있는 치아를 덮어 형태와 기능을 보완하는 고정성 보철물입니다."],
+    ["치과임플란트", "임플란트·발치", "dental-implant", "턱뼈에 인공치근을 심고 상부 보철물을 연결하는 치료입니다."],
+    ["치과임플란트 건강보험", "보험·비용", "dental-implant-insurance", "연령, 인정 개수, 본인부담 등 일반 급여 기준을 확인합니다."],
+    ["치아우식증", "보존·신경치료", "tooth-decay", "세균이 만든 산으로 치아 조직이 손상되는 질환, 흔히 말하는 충치입니다."],
+    ["치주염", "잇몸·예방", "periodontitis", "치아를 지지하는 잇몸과 주변 조직에 염증이 진행된 상태입니다."],
+    ["턱관절장애", "턱관절·구강외과", "temporomandibular-disorder", "턱관절이나 씹는 근육의 통증, 소리, 입 벌리기 제한을 포괄합니다."],
+    ["투명교정장치", "교정·성장", "clear-aligners", "단계별로 교체해 착용하는 투명한 가철성 교정장치입니다."],
+    ["틀니", "보철·수복", "dentures", "여러 치아가 없을 때 끼웠다 뺄 수 있도록 제작하는 보철물입니다."]
+  ];
+  const CHO = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+  const initial = s => { const c = s.charCodeAt(0) - 0xAC00; return c >= 0 && c < 11172 ? CHO[Math.floor(c / 588)] : s[0]; };
+  const dict = document.getElementById("dict"), gq = document.getElementById("gq"), gcount = document.getElementById("gcount");
+  function render() {
+    const q = gq.value.trim();
+    const rows = TERMS.filter(t => !q || (t[0] + t[1] + t[3]).includes(q));
+    const groups = {};
+    rows.forEach(t => (groups[initial(t[0])] ||= []).push(t));
+    gcount.textContent = q ? `‘${q}’ 관련 ${rows.length}항목` : `가나다순 ${TERMS.length}항목`;
+    dict.innerHTML = rows.length ? Object.entries(groups).map(([k, list]) => `
+      <div class="dict-group"><h3>${k}</h3>${list.map(t => `
+        <a class="dict-entry" href="${B}/knowledge/${t[2]}/" target="_blank" rel="noopener"><strong>${t[0]}</strong><small>${t[1]}</small><span>${t[3]}</span></a>`).join("")}
+      </div>`).join("") : `<p class="dict-empty">사전에 없는 말입니다. 증상으로 찾기에서 불편한 점부터 시작해 보세요.</p>`;
+  }
+  gq.addEventListener("input", render); render();
+
+  const FAQ = [
+    ["임플란트 상담에서 비용 말고 무엇을 물어봐야 할까요?", "제안받은 치료의 이유, 견적에 포함된 항목, 치료 일정과 이후 관리에 관한 질문을 정리한 글입니다. 실제 비용과 치료 계획은 진찰 후 병원에 확인해 주세요.", "임플란트 상담 준비", "/guides/gongdeok-implant-consultation/"],
+    ["찬물을 마시면 이가 시려요. 어떤 내용을 읽으면 좋을까요?", "치아백과의 시린이 설명에서 용어의 뜻과 상담 전 확인할 질문을 살펴볼 수 있습니다. 언제, 어느 부위가 불편한지 진료 때 알려주세요.", "시린이 설명", "/knowledge/tooth-sensitivity/"],
+    ["양치할 때 잇몸에서 피가 나요. 상담 전에 무엇을 정리할까요?", "잇몸 건강 글에서 일상에서 느낀 불편함을 정리하는 방법을 읽어보세요. 글은 일반적인 안내이며 개인의 진단을 대신하지 않습니다.", "잇몸 건강 이야기", "/journal/gum-health/"],
+    ["크라운과 보철 재료를 상담할 때 어떤 질문을 하나요?", "원하는 색과 모양, 씹을 때 느끼는 불편을 나누어 정리해 보세요. 재료의 추천 이유, 제작 과정과 관리에 대해 확인할 질문을 다룹니다.", "보철 상담 이야기", "/journal/restoration-consultation/"],
+    ["아이 치아교정은 언제 상담해야 할지 궁금해요.", "성장기 교정에 쓰이는 용어와 상담에서 확인할 질문을 정리했습니다. 필요한 시기와 방법은 현재 상태를 확인한 의료진과 상의해 주세요.", "성장기 교정 설명", "/knowledge/growth-orthodontics/"],
+    ["공덕역 근처에서 치과 상담을 받으려면 무엇을 준비할까요?", "주소는 서울 마포구 만리재로 24, 2층입니다. 위치와 연락처를 확인하고, 불편한 점과 상담할 질문을 정리해 보세요.", "위치·방문 안내", "/visit/"]
+  ];
+  document.getElementById("faq").innerHTML = FAQ.map((f, i) => `
+    <details ${i === 0 ? "open" : ""}><summary>${f[0]}</summary>
+      <div class="a"><p>${f[1]}</p><a class="more" href="${B + f[3]}" target="_blank" rel="noopener">${f[2]} ↗</a></div>
+    </details>`).join("");
+})();
+</script>
+</body>
+</html>
