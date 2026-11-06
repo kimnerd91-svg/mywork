@@ -55,13 +55,43 @@
     const words = q.split(/\s+/);
     const hits = TERMS.map(t => ({ t, s: words.reduce((n, w) => n + (t[0].includes(w) ? 4 : 0) + (t[4].includes(w) ? 3 : 0) + (t[1].includes(w) ? 2 : 0) + (t[3].includes(w) ? 1 : 0), 0) }))
       .filter(x => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 4);
-    box.innerHTML = hits.length ? hits.map(({ t }) => `<a href="https://yidoinsight.com/knowledge/${t[2]}/"><strong>${esc(t[0])}</strong><span>${esc(t[3])}</span><em>${esc(t[1])}</em></a>`).join('')
+    box.innerHTML = hits.length ? hits.map(({ t }) => `<a href="${t[2] === 'dental-implant' ? 'knowledge-implant.html' : `https://yidoinsight.com/knowledge/${t[2]}/`}"><strong>${esc(t[0])}</strong><span>${esc(t[3])}</span><em>${esc(t[1])}</em></a>`).join('')
       : `<p class="empty">‘${esc(q)}’에 맞는 용어가 아직 없습니다. 아래 분류에서 찾아보거나 증상으로 찾기를 이용해 주세요.</p>`;
   }
   if (input) {
     input.addEventListener('input', search);
     $('#ins-search-form')?.addEventListener('submit', e => { e.preventDefault(); search(); });
     $$('.ins-chips button').forEach(b => b.addEventListener('click', () => { input.value = b.textContent.trim(); search(); }));
+  }
+
+
+  /* 사진 초점 (data-pos → object-position) */
+  $$('img[data-pos]').forEach(img => { img.style.objectPosition = img.dataset.pos; });
+
+  /* 치아백과 목록: 분야 필터 + 검색 */
+  const grid = $('#kb-grid');
+  if (grid) {
+    const cards = $$('.term-card', grid), chips = $$('.kb-filter button'), q = $('#kb-q'), count = $('#kb-count'), empty = $('#kb-empty');
+    const ALIAS = { '씌우기': '크라운', '신경치료': '근관치료', '충치': '우식', '레진': '복합레진', '잇몸': '치주염 스케일링 잇몸', '교정': '교정', '빠진': '임플란트 브리지 틀니', '시림': '시린이' };
+    let cat = '전체';
+    const apply = () => {
+      const raw = (q.value || '').trim(); const words = raw ? raw.split(/\s+/).flatMap(w => [w, ...(ALIAS[w] || '').split(' ').filter(Boolean)]) : [];
+      let n = 0;
+      cards.forEach(c => { const okCat = cat === '전체' || c.dataset.cat === cat; const okQ = !words.length || words.some(w => c.dataset.name.includes(w)); const on = okCat && okQ; c.hidden = !on; if (on) n++; });
+      count.textContent = `용어 ${n}개` + (cat !== '전체' ? ` · ${cat}` : '') + (raw ? ` · ‘${raw}’` : '');
+      empty.hidden = n > 0;
+    };
+    chips.forEach(b => b.addEventListener('click', () => { cat = b.dataset.filter; chips.forEach(x => { x.classList.toggle('is-on', x === b); x.setAttribute('aria-pressed', x === b); }); apply(); }));
+    q.addEventListener('input', apply);
+    $('#kb-form').addEventListener('submit', e => { e.preventDefault(); apply(); });
+  }
+
+  /* 아티클 목차: 읽는 위치 표시 */
+  const tocLinks = $$('.article-toc a');
+  if (tocLinks.length && 'IntersectionObserver' in window) {
+    const map = new Map(tocLinks.map(a => [a.getAttribute('href').slice(1), a]));
+    const io2 = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { tocLinks.forEach(a => a.classList.remove('is-on')); map.get(e.target.id)?.classList.add('is-on'); } }), { rootMargin: '-30% 0px -60% 0px' });
+    map.forEach((_, id) => { const el = document.getElementById(id); if (el) io2.observe(el); });
   }
 
   /* 오늘 진료 상태 (한국 시간) */
